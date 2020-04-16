@@ -1,0 +1,195 @@
+<!--
+    How to add value:
+        - renew motivation: fun/engaging/rewarding/beautiful
+        - reiterate why its important to keep the rhythm
+
+
+    (SCREEN 1)
+    
+        CLICK HERE
+        TO LEARN THE RHYTHM
+
+    (SCREEN 2)
+
+        You will use your smartphone to open a metronome app
+        to help you pump in rhythm
+
+        picture of the hand and the smartphone
+        info bubble to explain what a metronome is
+
+        maybe recommend some apps and take screenshots? A download now?
+
+    (SCREEN 3)
+
+
+Medical, professional
+
+Users: nurses 
+Context: online learning -> edutainment
+Opportunity to add watermark for my brand?!
+
+Doing it live
+1) metronome app
+2) pump to the 
+
+-->
+<div id="container" style="margin: auto; width: 800px; height: 400px;">
+    <article style="display: flex; justify-content:center; width: 100%; height:100%; overflow: hidden;">
+        <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+        <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+        <style>
+            .squeeze {
+                background-image:url("./assets/0.jpeg");
+                background-size: cover;
+                width: 600px;
+                height: 100%;
+            }
+            .squeeze-overlay {
+                display: flex;
+                justify-content: center;
+                align-content: center;
+                background-color: rgba(255, 255, 255, 0.75);
+                height: 100%;
+                max-width: 100%;
+                padding: 0 1em 0;
+                text-align: center;
+                position: relative;
+            }
+            .squeeze-overlay-text {
+                margin: auto;
+                box-sizing: border-box;
+                font-size: 2em;
+                font-family: 'Lato';
+            }
+            #presentation {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+            #presentation-buttons {
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+            }
+            #presentation-buttons button {
+                width: 100%;
+                padding: 1em;
+                background-color: rgb(40, 95, 159);
+                color: white;
+                border: 0;
+                font-size: 1.5em;
+                font-family: "Lato"
+            }
+            #presentation-buttons button:hover {
+                background-color: #2a88f5;
+                cursor: pointer;
+            }
+            .left-key, .right-key {
+                font-size: 1.2em;
+                font-family: "Lato";
+                position: absolute;
+                padding: .5em 1em;
+                border: 2px solid #333;
+                border-radius: 2px;
+                background-color: #333;
+                color: white;
+                bottom: 10px;
+            }
+            .left-key {
+                left: 10px;
+            }
+            .right-key {
+                right: 10px;
+            }
+            .left-key:hover, .right-key:hover {
+                cursor: pointer;
+            }
+            .pushed-key {
+                background-color: white;
+                color: #333;
+            }
+        </style>
+        <section id="presentation">
+            <div class="squeeze">
+                <div class="squeeze-overlay">
+                    <div class="squeeze-overlay-text">Loading...</div>
+                    <div class="left-key" style="display:none;">Q</div>
+                    <div class="right-key" style="display:none;">P</div>
+                </div>
+            </div>
+            <div id="presentation-buttons"></div>
+        </section>
+        <!-- <section>
+            <div>
+                <img src='./assets/phone.png' width="200" height="200"/>
+            </div>
+        </section> -->
+        <script>
+            (function(window) {
+                var text = document.querySelector('.squeeze-overlay-text');
+                var buttons = document.querySelector('#presentation-buttons');
+                var leftKey = document.querySelector('.left-key');
+                var rightKey = document.querySelector('.right-key');
+
+                window.document.addEventListener('keydown', function(e) {
+                    console.log(e);
+                    switch (e.code) {
+                        case "KeyQ":
+                            leftKey.classList.add('pushed-key');
+                            break;
+                        case "KeyP":
+                            rightKey.classList.add('pushed-key');
+                            break; 
+                    }
+                });
+
+                window.document.addEventListener('keyup', function(e) {
+                    switch (e.code) {
+                        case "KeyQ":
+                            leftKey.classList.remove('pushed-key');
+                            break;
+                        case "KeyP":
+                            rightKey.classList.remove('pushed-key');
+                            break; 
+                    }
+                });
+
+                function setPresentationState(stateIndex) {
+                    switch (stateIndex) {
+                        case 0:
+                            leftKey.style.display = 'none';
+                            rightKey.style.display = 'none';
+                            text.innerHTML = '<span style="text-decoration:underline;">Interactive Tutorial:</span> Pumping a Respirator to a Rhythm';
+                            buttons.innerHTML = '<button onClick="setPresentationState(1)">Click To Get Started</button>';
+                            buttons.querySelectorAll('button').style.width = '100%'
+                            break;
+                        case 1:
+                            text.innerHTML = 'This tutorial asks you to use your <strong>keyboard</strong> to simulate pumping a respirator bag <strong>to a rhythm</strong>.';
+                            buttons.innerHTML = '<button onClick="setPresentationState(0)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(2)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                            buttons.querySelectorAll('button').style.width = '50%'
+                            break;
+                        case 2:
+                            leftKey.style.display = 'block';
+                            rightKey.style.display = 'block';
+                            text.innerHTML = '<h3 style="margin:.5em; margin-top: 0">How To Use Keyboard</h3>Pretend your keyboard is the bag. Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key. Try it now!';
+                            buttons.innerHTML = '<button onClick="setPresentationState(1)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(3)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                            buttons.querySelectorAll('button').style.width = '50%'
+                            break;
+                        case 3:
+                            text.innerHTML = '<h3 style="margin:.5em; margin-top: 0;">How To Use Metronome</h3>TODO';
+                            buttons.innerHTML = '<button onClick="setPresentationState(2)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(4)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                            buttons.querySelectorAll('button').style.width = '50%'
+                            break;
+                        default:
+                            alert("TODO");
+                    }
+                }
+                window.setPresentationState = setPresentationState;
+                window.document.addEventListener('DOMContentLoaded', function() {
+                    setPresentationState(0);
+                }, false);
+            })(window)
+        </script>
+    </article>
+</div>
