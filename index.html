@@ -42,12 +42,11 @@ Doing it live
                 background-image:url("./assets/0.jpeg");
                 background-size: cover;
                 width: 600px;
-                height: 100%;
+                height: 80%;
             }
             .squeeze-overlay {
                 display: flex;
-                justify-content: center;
-                align-content: center;
+                flex-direction: column;
                 background-color: rgba(255, 255, 255, 0.75);
                 height: 100%;
                 max-width: 100%;
@@ -85,22 +84,25 @@ Doing it live
                 background-color: #2a88f5;
                 cursor: pointer;
             }
+            .bottom-buttons-wrapper {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 10px;
+            }
             .left-key, .right-key {
                 font-size: 1.2em;
                 font-family: "Lato";
-                position: absolute;
-                padding: .5em 1em;
+                padding: .75em 1em .75em;
                 border: 2px solid #333;
                 border-radius: 2px;
                 background-color: #333;
                 color: white;
-                bottom: 10px;
             }
-            .left-key {
-                left: 10px;
-            }
-            .right-key {
-                right: 10px;
+            .left-text, .right-text {
+                font-size: 1.2em;
+                font-family: "Lato";
+                padding: .75em 1em .75em;
+                font-weight: bold;
             }
             .left-key:hover, .right-key:hover {
                 cursor: pointer;
@@ -109,13 +111,42 @@ Doing it live
                 background-color: white;
                 color: #333;
             }
+            ul.metronome {
+                display: flex;
+                padding: 0;
+                margin:0;
+            }
+            ul.metronome li {
+                font-family: "Lato";
+                list-style-type: none;
+                font-size: 1.2em;
+                padding: .75em;
+                margin: 0 .25em 0;
+                border-radius: 100px;
+                border: 2px solid #333;
+                border-color: rgb(159, 40, 40);
+                background-color: rgb(159, 40, 40);
+                color: white;
+            }
+            ul.metronome li:hover {
+                cursor:pointer;
+            }
         </style>
         <section id="presentation">
             <div class="squeeze">
                 <div class="squeeze-overlay">
                     <div class="squeeze-overlay-text">Loading...</div>
-                    <div class="left-key" style="display:none;">Q</div>
-                    <div class="right-key" style="display:none;">P</div>
+                    <div class="bottom-buttons-wrapper">
+                        <div class="left-key" style="display:none;">Q</div>
+                        <div class="left-text" style="display:none;">READY?</div>
+                        <ul class="metronome" style="display:none;">
+                            <li>12</li>
+                            <li style="background-color:rgb(186, 32, 32);border-color:rgb(186, 32, 32)">18</li>
+                            <li style="background-color:rgb(227, 18, 18);border-color:rgb(227, 18, 18)">24</li>
+                        </ul>
+                        <div class="right-text" style="display:none;">READY?</div>
+                        <div class="right-key" style="display:none;">P</div>
+                    </ul>
                 </div>
             </div>
             <div id="presentation-buttons"></div>
@@ -127,19 +158,46 @@ Doing it live
         </section> -->
         <script>
             (function(window) {
+
+                window.tutorialPresentationState = 0;
+                window.tutorialBPMState = 12;
+                window.tutorialShouldBePushedState = false;
+
                 var text = document.querySelector('.squeeze-overlay-text');
                 var buttons = document.querySelector('#presentation-buttons');
                 var leftKey = document.querySelector('.left-key');
                 var rightKey = document.querySelector('.right-key');
+                leftKey.tutorialIsPushed = false;
+                rightKey.tutorialIsPushed = false;
+                var metronome = document.querySelector('.metronome');
+                var metronomeButtons = metronome.querySelectorAll('li');
+                var leftText = document.querySelector('.left-text');
+                var rightText = document.querySelector('.right-text');     
 
                 window.document.addEventListener('keydown', function(e) {
                     console.log(e);
                     switch (e.code) {
                         case "KeyQ":
                             leftKey.classList.add('pushed-key');
+                            if (window.tutorialIntervalID) {
+                                leftKey.tutorialIsPushed = true;
+                                if (window.tutorialShouldBePushedState) {
+                                    leftText.innerHTML = "GOOD!";
+                                } else {
+                                    leftText.innerHTML = "RELEASE!";
+                                }
+                            }
                             break;
                         case "KeyP":
                             rightKey.classList.add('pushed-key');
+                            if (window.tutorialIntervalID) {
+                                rightKey.tutorialIsPushed = true;
+                                if (window.tutorialShouldBePushedState) {
+                                    rightText.innerHTML = "GOOD!";
+                                } else {
+                                    rightText.innerHTML = "RELEASE!";
+                                }
+                            }
                             break; 
                     }
                 });
@@ -148,37 +206,119 @@ Doing it live
                     switch (e.code) {
                         case "KeyQ":
                             leftKey.classList.remove('pushed-key');
+                            leftKey.tutorialIsPushed = false;
+                            if (window.tutorialShouldBePushedState) {
+                                leftText.innerHTML = "PUSH!";
+                            } else {
+                                leftText.innerHTML = "GOOD!";
+                            }
                             break;
                         case "KeyP":
                             rightKey.classList.remove('pushed-key');
+                            rightKey.tutorialIsPushed = false;
+                            if (window.tutorialShouldBePushedState) {
+                                rightText.innerHTML = "PUSH!";
+                            } else {
+                                rightText.innerHTML = "GOOD!";
+                            }
                             break; 
                     }
                 });
 
+                metronomeButtons.forEach(function(b) {
+                    b.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        if (e.target == metronomeButtons[0]) {
+                            window.tutorialBPMState = 12;
+                            startIntervalTutorial();
+                            metronomeButtons[0].style.backgroundColor = 'white';
+                            metronomeButtons[0].style.color = 'rgb(159, 40, 40)';
+                            metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
+                            metronomeButtons[1].style.color = 'white';
+                            metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
+                            metronomeButtons[2].style.color = 'white';
+                        } else if (e.target == metronomeButtons[1]) {
+                            window.tutorialBPMState = 18;
+                            startIntervalTutorial();
+                            metronomeButtons[0].style.color = 'white';
+                            metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
+                            metronomeButtons[1].style.color = 'rgb(186, 32, 32)';
+                            metronomeButtons[1].style.backgroundColor = 'white';
+                            metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
+                            metronomeButtons[2].style.color = 'white';
+                        } else if (e.target == metronomeButtons[2]) {
+                            window.tutorialBPMState = 24;
+                            startIntervalTutorial();
+                            metronomeButtons[0].style.color = 'white';
+                            metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
+                            metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
+                            metronomeButtons[1].style.color = 'white';
+                            metronomeButtons[2].style.color = 'rgb(227, 18, 18)';
+                            metronomeButtons[2].style.backgroundColor = 'white';
+                        }
+                    });
+                })
+
                 function setPresentationState(stateIndex) {
                     switch (stateIndex) {
                         case 0:
+                            leftKey.style.visibility = 'visible';
+                            rightKey.style.visibility = 'visible';
                             leftKey.style.display = 'none';
                             rightKey.style.display = 'none';
+                            metronome.style.display = 'none';
+                            leftText.style.display = 'none';
+                            rightText.style.display = 'none';
                             text.innerHTML = '<span style="text-decoration:underline;">Interactive Tutorial:</span> Pumping a Respirator to a Rhythm';
-                            buttons.innerHTML = '<button onClick="setPresentationState(1)">Click To Get Started</button>';
+                            buttons.innerHTML = '<button onClick="setPresentationState(++tutorialPresentationState)">Click To Get Started</button>';
                             buttons.querySelectorAll('button').style.width = '100%'
                             break;
                         case 1:
+                            leftKey.style.visibility = 'visible';
+                            rightKey.style.visibility = 'visible';
+                            leftKey.style.display = 'none';
+                            rightKey.style.display = 'none';
+                            metronome.style.display = 'none';
+                            leftText.style.display = 'none';
+                            rightText.style.display = 'none';
                             text.innerHTML = 'This tutorial asks you to use your <strong>keyboard</strong> to simulate pumping a respirator bag <strong>to a rhythm</strong>.';
-                            buttons.innerHTML = '<button onClick="setPresentationState(0)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(2)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                            buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                             buttons.querySelectorAll('button').style.width = '50%'
                             break;
                         case 2:
+                            leftKey.style.visibility = 'visible';
+                            rightKey.style.visibility = 'visible';
                             leftKey.style.display = 'block';
                             rightKey.style.display = 'block';
+                            metronome.style.display = 'none';
+                            leftText.style.display = 'none';
+                            rightText.style.display = 'none';
                             text.innerHTML = '<h3 style="margin:.5em; margin-top: 0">How To Use Keyboard</h3>Pretend your keyboard is the bag. Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key. Try it now!';
-                            buttons.innerHTML = '<button onClick="setPresentationState(1)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(3)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                            buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                             buttons.querySelectorAll('button').style.width = '50%'
                             break;
                         case 3:
-                            text.innerHTML = '<h3 style="margin:.5em; margin-top: 0;">How To Use Metronome</h3>TODO';
-                            buttons.innerHTML = '<button onClick="setPresentationState(2)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(4)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                            leftKey.style.visibility = 'hidden';
+                            rightKey.style.visibility = 'hidden';
+                            leftKey.style.display = 'block';
+                            rightKey.style.display = 'block';
+                            metronome.style.display = 'flex';
+                            leftText.style.display = 'none';
+                            rightText.style.display = 'none';
+                            text.innerHTML = '<h3 style="margin:.5em; margin-top: 0;">How To Use Metronome</h3>A metronome <strong> sets the pumping rhythm</strong>. This tutorial uses the three buttons below to set the rhythm. Try them out!';
+                            buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                            buttons.querySelectorAll('button').style.width = '50%'
+                            break;
+                        case 4:
+                            leftKey.style.visibility = 'visible';
+                            rightKey.style.visibility = 'visible';
+                            leftKey.style.display = 'block';
+                            rightKey.style.display = 'block';
+                            metronome.style.display = 'flex';
+                            leftText.style.display = 'block';
+                            rightText.style.display = 'block';
+                            text.innerHTML = '<h3 style="margin:.5em; margin-top: 0;">TODO</h3>';
+                            buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                             buttons.querySelectorAll('button').style.width = '50%'
                             break;
                         default:
@@ -186,8 +326,49 @@ Doing it live
                     }
                 }
                 window.setPresentationState = setPresentationState;
+
+                function startIntervalTutorial() {
+                    if (window.tutorialIntervalID) {
+                        window.clearInterval(window.tutorialIntervalID);
+                    }
+                    window.tutorialShouldBePushedState = false;
+                    window.tutorialIntervalID = window.setInterval(tutorialInterval, BPMToInterval(window.tutorialBPMState));
+                }
+
+                function tutorialInterval() {
+                    window.tutorialShouldBePushedState = !window.tutorialShouldBePushedState;
+                    if (window.tutorialShouldBePushedState) {
+                        if (leftKey.tutorialIsPushed) {
+                            leftText.innerHTML = "GOOD!";
+                        } else {
+                            leftText.innerHTML = "PUSH!";
+                        }
+                        if (rightKey.tutorialIsPushed) {
+                            rightText.innerHTML = "GOOD!";
+                        } else {
+                            rightText.innerHTML = "PUSH!";
+                        }
+                    } else {
+                        if (leftKey.tutorialIsPushed) {
+                            leftText.innerHTML = "RELEASE!";
+                        } else {
+                            leftText.innerHTML = "GOOD!";
+                        }
+                        if (rightKey.tutorialIsPushed) {
+                            rightText.innerHTML = "RELEASE!";
+                        } else {
+                            rightText.innerHTML = "GOOD!";
+                        }
+                    }
+                }
+
+                function BPMToInterval(BPM) {
+                    return (60000 / BPM) / 2;
+                }
+
                 window.document.addEventListener('DOMContentLoaded', function() {
-                    setPresentationState(0);
+                    window.tutorialPresentationState = 0;
+                    setPresentationState(window.tutorialPresentationState);
                 }, false);
             })(window)
         </script>
