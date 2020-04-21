@@ -131,6 +131,12 @@ Doing it live
             ul.metronome li:hover {
                 cursor:pointer;
             }
+            .success {
+                color: #3c763d;
+            }
+            .error {
+                color: #a94442;
+            }
         </style>
         <section id="presentation">
             <div class="squeeze">
@@ -160,7 +166,7 @@ Doing it live
             (function(window) {
 
                 window.tutorialPresentationState = 0;
-                window.tutorialBPMState = 12;
+                window.tutorialBPMState = 18;
                 window.tutorialShouldBePushedState = false;
 
                 var text = document.querySelector('.squeeze-overlay-text');
@@ -172,19 +178,22 @@ Doing it live
                 var metronome = document.querySelector('.metronome');
                 var metronomeButtons = metronome.querySelectorAll('li');
                 var leftText = document.querySelector('.left-text');
-                var rightText = document.querySelector('.right-text');     
+                var rightText = document.querySelector('.right-text');
+
+                var pushSpan = '<span class="error">PUSH!</span>'; 
+                var releaseSpan = '<span class="error">RELEASE!</span>'; 
+                var goodSpan = '<span class="success">GOOD!</span>'; 
 
                 window.document.addEventListener('keydown', function(e) {
-                    console.log(e);
                     switch (e.code) {
                         case "KeyQ":
                             leftKey.classList.add('pushed-key');
                             if (window.tutorialIntervalID) {
                                 leftKey.tutorialIsPushed = true;
                                 if (window.tutorialShouldBePushedState) {
-                                    leftText.innerHTML = "GOOD!";
+                                    leftText.innerHTML = goodSpan;
                                 } else {
-                                    leftText.innerHTML = "RELEASE!";
+                                    leftText.innerHTML = releaseSpan;
                                 }
                             }
                             break;
@@ -193,9 +202,9 @@ Doing it live
                             if (window.tutorialIntervalID) {
                                 rightKey.tutorialIsPushed = true;
                                 if (window.tutorialShouldBePushedState) {
-                                    rightText.innerHTML = "GOOD!";
+                                    rightText.innerHTML = goodSpan;
                                 } else {
-                                    rightText.innerHTML = "RELEASE!";
+                                    rightText.innerHTML = releaseSpan;
                                 }
                             }
                             break; 
@@ -206,22 +215,26 @@ Doing it live
                     switch (e.code) {
                         case "KeyQ":
                             leftKey.classList.remove('pushed-key');
-                            leftKey.tutorialIsPushed = false;
-                            if (window.tutorialShouldBePushedState) {
-                                leftText.innerHTML = "PUSH!";
-                            } else {
-                                leftText.innerHTML = "GOOD!";
+                            if (window.tutorialIntervalID) {
+                                leftKey.tutorialIsPushed = false;
+                                if (window.tutorialShouldBePushedState) {
+                                    leftText.innerHTML = pushSpan;
+                                } else {
+                                    leftText.innerHTML = goodSpan;
+                                }
                             }
                             break;
                         case "KeyP":
                             rightKey.classList.remove('pushed-key');
-                            rightKey.tutorialIsPushed = false;
-                            if (window.tutorialShouldBePushedState) {
-                                rightText.innerHTML = "PUSH!";
-                            } else {
-                                rightText.innerHTML = "GOOD!";
+                            if (window.tutorialIntervalID) {
+                                rightKey.tutorialIsPushed = false;
+                                if (window.tutorialShouldBePushedState) {
+                                    rightText.innerHTML = pushSpan;
+                                } else {
+                                    rightText.innerHTML = goodSpan;
+                                }
                             }
-                            break; 
+                            break;
                     }
                 });
 
@@ -230,7 +243,9 @@ Doing it live
                         e.preventDefault();
                         if (e.target == metronomeButtons[0]) {
                             window.tutorialBPMState = 12;
-                            startIntervalTutorial();
+                            if (window.tutorialIntervalID) {
+                                startIntervalTutorial();
+                            }
                             metronomeButtons[0].style.backgroundColor = 'white';
                             metronomeButtons[0].style.color = 'rgb(159, 40, 40)';
                             metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
@@ -239,7 +254,9 @@ Doing it live
                             metronomeButtons[2].style.color = 'white';
                         } else if (e.target == metronomeButtons[1]) {
                             window.tutorialBPMState = 18;
-                            startIntervalTutorial();
+                            if (window.tutorialIntervalID) {
+                                startIntervalTutorial();
+                            }
                             metronomeButtons[0].style.color = 'white';
                             metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
                             metronomeButtons[1].style.color = 'rgb(186, 32, 32)';
@@ -248,7 +265,9 @@ Doing it live
                             metronomeButtons[2].style.color = 'white';
                         } else if (e.target == metronomeButtons[2]) {
                             window.tutorialBPMState = 24;
-                            startIntervalTutorial();
+                            if (window.tutorialIntervalID) {
+                                startIntervalTutorial();
+                            }
                             metronomeButtons[0].style.color = 'white';
                             metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
                             metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
@@ -271,7 +290,7 @@ Doing it live
                             rightText.style.display = 'none';
                             text.innerHTML = '<span style="text-decoration:underline;">Interactive Tutorial:</span> Pumping a Respirator to a Rhythm';
                             buttons.innerHTML = '<button onClick="setPresentationState(++tutorialPresentationState)">Click To Get Started</button>';
-                            buttons.querySelectorAll('button').style.width = '100%'
+                            buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '100%'})
                             break;
                         case 1:
                             leftKey.style.visibility = 'visible';
@@ -283,7 +302,7 @@ Doing it live
                             rightText.style.display = 'none';
                             text.innerHTML = 'This tutorial asks you to use your <strong>keyboard</strong> to simulate pumping a respirator bag <strong>to a rhythm</strong>.';
                             buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
-                            buttons.querySelectorAll('button').style.width = '50%'
+                            buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                             break;
                         case 2:
                             leftKey.style.visibility = 'visible';
@@ -295,19 +314,20 @@ Doing it live
                             rightText.style.display = 'none';
                             text.innerHTML = '<h3 style="margin:.5em; margin-top: 0">How To Use Keyboard</h3>Pretend your keyboard is the bag. Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key. Try it now!';
                             buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
-                            buttons.querySelectorAll('button').style.width = '50%'
+                            buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                             break;
                         case 3:
-                            leftKey.style.visibility = 'hidden';
-                            rightKey.style.visibility = 'hidden';
+                            leftKey.style.visibility = 'visible';
+                            rightKey.style.visibility = 'visible';
                             leftKey.style.display = 'block';
                             rightKey.style.display = 'block';
-                            metronome.style.display = 'flex';
-                            leftText.style.display = 'none';
-                            rightText.style.display = 'none';
-                            text.innerHTML = '<h3 style="margin:.5em; margin-top: 0;">How To Use Metronome</h3>A metronome <strong> sets the pumping rhythm</strong>. This tutorial uses the three buttons below to set the rhythm. Try them out!';
+                            metronome.style.display = 'none';
+                            leftText.style.display = 'block';
+                            rightText.style.display = 'block';
+                            text.innerHTML = '<h3 style="margin:.5em; margin-top: 0">What To Do</h3>Push Q and P when you see <strong class="error" style="font-size:1.2rem">PUSH!</strong><br /> Release Q and P when you see <strong class="error" style="font-size:1.2rem">RELEASE!</strong><br /> Don\'t change when you see <strong class="success" style="font-size:1.2rem">GOOD!</strong><br /> Move on once you have the hang of it.';
                             buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
-                            buttons.querySelectorAll('button').style.width = '50%'
+                            buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
+                            startIntervalTutorial();
                             break;
                         case 4:
                             leftKey.style.visibility = 'visible';
@@ -315,11 +335,47 @@ Doing it live
                             leftKey.style.display = 'block';
                             rightKey.style.display = 'block';
                             metronome.style.display = 'flex';
+                            leftText.style.display = 'none';
+                            rightText.style.display = 'none';
+                            window.clearInterval(window.tutorialIntervalID);
+                            leftText.innerHTML = 'READY?'
+                            rightText.innerHTML = 'READY?'
+                            text.innerHTML = '<h3 style="margin:.5em; margin-top: 0;">Adding a Metronome</h3>A metronome <strong> sets the pumping rhythm</strong>. You can select how many beats per minute you want to pump to.';
+                            buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                            buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
+                            window.tutorialBPMState = 18;
+                            metronomeButtons[0].style.color = 'white';
+                            metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
+                            metronomeButtons[1].style.color = 'rgb(186, 32, 32)';
+                            metronomeButtons[1].style.backgroundColor = 'white';
+                            metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
+                            metronomeButtons[2].style.color = 'white';
+                            break;
+                        case 5:
+                            leftKey.style.visibility = 'visible';
+                            rightKey.style.visibility = 'visible';
+                            leftKey.style.display = 'block';
+                            rightKey.style.display = 'block';
+                            metronome.style.display = 'flex';
                             leftText.style.display = 'block';
                             rightText.style.display = 'block';
-                            text.innerHTML = '<h3 style="margin:.5em; margin-top: 0;">TODO</h3>';
+                            text.innerHTML = '<h3 style="margin:.5em; margin-top: 0;">Trying Different Rhythms</h3>Use the metronome buttons to try pumping to the different rhythms.';
                             buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
-                            buttons.querySelectorAll('button').style.width = '50%'
+                            buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
+                            startIntervalTutorial();
+                            break;
+                        case 6:
+                            leftKey.style.visibility = 'hidden';
+                            rightKey.style.visibility = 'hidden';
+                            leftKey.style.display = 'none';
+                            rightKey.style.display = 'none';
+                            metronome.style.display = 'none';
+                            leftText.style.display = 'none';
+                            rightText.style.display = 'none';
+                            text.innerHTML = '<h3 style="margin:.5em; margin-top: 0;">Wrapping Up</h3>That\'s all! We hope this simulation helped. Before you go, remember you will need a metronome app on your smartphone to set the rhythm in person. <a href="https://apps.apple.com/us/app/pro-metronome-tempo-beat-subdivision-polyrhythm/id477960671" target="_blank">Click here to view the app</a>' ;
+                            buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button>';
+                            buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '100%'})
+                            startIntervalTutorial();
                             break;
                         default:
                             alert("TODO");
@@ -339,25 +395,25 @@ Doing it live
                     window.tutorialShouldBePushedState = !window.tutorialShouldBePushedState;
                     if (window.tutorialShouldBePushedState) {
                         if (leftKey.tutorialIsPushed) {
-                            leftText.innerHTML = "GOOD!";
+                            leftText.innerHTML = goodSpan;
                         } else {
-                            leftText.innerHTML = "PUSH!";
+                            leftText.innerHTML = pushSpan;
                         }
                         if (rightKey.tutorialIsPushed) {
-                            rightText.innerHTML = "GOOD!";
+                            rightText.innerHTML = goodSpan;
                         } else {
-                            rightText.innerHTML = "PUSH!";
+                            rightText.innerHTML = pushSpan;
                         }
                     } else {
                         if (leftKey.tutorialIsPushed) {
-                            leftText.innerHTML = "RELEASE!";
+                            leftText.innerHTML = releaseSpan;
                         } else {
-                            leftText.innerHTML = "GOOD!";
+                            leftText.innerHTML = goodSpan;
                         }
                         if (rightKey.tutorialIsPushed) {
-                            rightText.innerHTML = "RELEASE!";
+                            rightText.innerHTML = releaseSpan;
                         } else {
-                            rightText.innerHTML = "GOOD!";
+                            rightText.innerHTML = goodSpan;
                         }
                     }
                 }
@@ -369,6 +425,18 @@ Doing it live
                 window.document.addEventListener('DOMContentLoaded', function() {
                     window.tutorialPresentationState = 0;
                     setPresentationState(window.tutorialPresentationState);
+                // case 3:
+                //     leftKey.style.visibility = 'hidden';
+                //     rightKey.style.visibility = 'hidden';
+                //     leftKey.style.display = 'block';
+                //     rightKey.style.display = 'block';
+                //     metronome.style.display = 'flex';
+                //     leftText.style.display = 'none';
+                //     rightText.style.display = 'none';
+                //     text.innerHTML = '<h3 style="margin:.5em; margin-top: 0;">How To Use Metronome</h3>A metronome <strong> sets the pumping rhythm</strong>. This tutorial uses the three buttons below to set the rhythm. Try them out!';
+                //     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Previous</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                //     buttons.querySelectorAll('button').style.width = '50%'
+                //     break;
                 }, false);
             })(window)
         </script>
