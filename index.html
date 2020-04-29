@@ -1,16 +1,14 @@
 <!-- TODOS
-- figure out how to work in the gif to communicate with people what they're doing
-- look at reformatting the metronome text into two slides since there is so much
-- the phone with the arrows for selecting the bpm
-- redoing the whole game on keyboard
-- doing the whole game on mobile
-- syncing up the gif to be in with the rhythm
+- check mobile responsive
+- add default font / meta tags
+- loading screen / background before sprite loads in on first screen
+- add cell phone metronome selector
 -->
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>title</title>
+    <title>Pumping a Self-Inflating Bag</title>
     <style type="text/css">
         body {
             background: rgb(214,233,255);
@@ -83,6 +81,7 @@
         .bottom-buttons-wrapper {
             display: flex;
             justify-content: space-between;
+            align-items: flex-end;
             margin-bottom: 10px;
             width: 100%;
         }
@@ -95,8 +94,8 @@
             color: white;
         }
         .left-text, .right-text {
-            font-size: 1.2em;
-            padding: .75em 1em .75em;
+            font-size: 2em;
+            padding: .5em;
             font-weight: bold;
         }
         .left-key:hover, .right-key:hover {
@@ -106,10 +105,21 @@
             background-color: white;
             color: #333;
         }
+        .metronome-wrapper {
+            margin:auto;
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+        }
+        .metronome-title {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
         ul.metronome {
             display: flex;
             padding: 0;
-            margin:0;
+            margin: 0;
         }
         ul.metronome li {
             list-style-type: none;
@@ -142,11 +152,14 @@
             <div class="bottom-buttons-wrapper">
                 <div class="left-key" style="display:none;"></div>
                 <div class="left-text" style="display:none;">READY?</div>
-                <ul class="metronome" style="display:none;">
-                    <li>12</li>
-                    <li style="background-color:rgb(186, 32, 32);border-color:rgb(186, 32, 32)">18</li>
-                    <li style="background-color:rgb(227, 18, 18);border-color:rgb(227, 18, 18)">24</li>
-                </ul>
+                <div class="metronome-wrapper">
+                    <div class="metronome-title">Select BPM</div>
+                    <ul class="metronome">
+                        <li>12</li>
+                        <li style="background-color:rgb(186, 32, 32);border-color:rgb(186, 32, 32)">18</li>
+                        <li style="background-color:rgb(227, 18, 18);border-color:rgb(227, 18, 18)">24</li>
+                    </ul>
+                </div>
                 <div class="right-text" style="display:none;">READY?</div>
                 <div class="right-key" style="display:none;"></div>
             </div>
@@ -172,6 +185,7 @@
         var metronomeButtons = metronome.querySelectorAll('li');
         var leftText = document.querySelector('.left-text');
         var rightText = document.querySelector('.right-text');
+        var metronomeWrapper = document.querySelector('.metronome-wrapper');
 
         var pushSpan = '<span class="error">PUSH!</span>'; 
         var releaseSpan = '<span class="error">RELEASE!</span>'; 
@@ -213,49 +227,33 @@
             leftKey.addEventListener('touchstart', function(e) {
                 e.preventDefault();
                 leftKey.classList.add('pushed-key');
-                if (window.tutorialIntervalID) {
+                if (window.GIFIntervalID) {
                     leftKey.tutorialIsPushed = true;
-                    if (window.tutorialShouldBePushedState) {
-                        leftText.innerHTML = goodSpan;
-                    } else {
-                        leftText.innerHTML = releaseSpan;
-                    }
+                    updateText();
                 }
             });
             rightKey.addEventListener('touchstart', function(e) {
                 e.preventDefault();
                 rightKey.classList.add('pushed-key');
-                if (window.tutorialIntervalID) {
+                if (window.GIFIntervalID) {
                     rightKey.tutorialIsPushed = true;
-                    if (window.tutorialShouldBePushedState) {
-                        rightText.innerHTML = goodSpan;
-                    } else {
-                        rightText.innerHTML = releaseSpan;
-                    }
+                    updateText();
                 }
             });
             leftKey.addEventListener('touchend', function(e) {
                 e.preventDefault();
                 leftKey.classList.remove('pushed-key');
-                if (window.tutorialIntervalID) {
+                if (window.GIFIntervalID) {
                     leftKey.tutorialIsPushed = false;
-                    if (window.tutorialShouldBePushedState) {
-                        leftText.innerHTML = pushSpan;
-                    } else {
-                        leftText.innerHTML = goodSpan;
-                    }
+                    updateText();
                 }
             });
             rightKey.addEventListener('touchend', function(e) {
                 e.preventDefault();
                 rightKey.classList.remove('pushed-key');
-                if (window.tutorialIntervalID) {
+                if (window.GIFIntervalID) {
                     rightKey.tutorialIsPushed = false;
-                    if (window.tutorialShouldBePushedState) {
-                        rightText.innerHTML = pushSpan;
-                    } else {
-                        rightText.innerHTML = goodSpan;
-                    }
+                    updateText();
                 }
             });
         }
@@ -327,9 +325,19 @@
                     metronomeButtons[2].style.color = 'rgb(227, 18, 18)';
                     metronomeButtons[2].style.backgroundColor = 'white';
                 }
-                startGIFInterval();
+                startGIFInterval(false, window.tutorialPresentationState != 5);
             });
-        })
+        });
+
+        function clearMetronomeSelection() {
+            window.tutorialBPMState = 12;
+            metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
+            metronomeButtons[0].style.color = 'white';
+            metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
+            metronomeButtons[1].style.color = 'white';
+            metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
+            metronomeButtons[2].style.color = 'white';
+        }
 
         function setPresentationState(stateIndex) {
             switch (stateIndex) {
@@ -340,9 +348,10 @@
                     rightKey.style.visibility = 'visible';
                     leftKey.style.display = 'none';
                     rightKey.style.display = 'none';
-                    metronome.style.display = 'none';
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
+                    metronomeWrapper.style.display = 'none';
+                    metronomeWrapper.style.margin = 'auto';
                     text.innerHTML = '<h3>Interactive Tutorial</h3>Squeezing the Self-Inflating Bag to a Rhythm';
                     buttons.innerHTML = '<button onClick="setPresentationState(++tutorialPresentationState)">Click To Get Started</button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '100%'})
@@ -355,9 +364,10 @@
                     rightKey.style.visibility = 'visible';
                     leftKey.style.display = 'none';
                     rightKey.style.display = 'none';
-                    metronome.style.display = 'none';
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
+                    metronomeWrapper.style.display = 'none';
+                    metronomeWrapper.style.margin = 'auto';
                     text.innerHTML = '<h3>Select Your Device</h3><i class="fa fa-long-arrow-down"></i>';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="tutorialSelectDevice(\'KEYBOARD\')"><i class="fa fa fa-laptop" style="margin-right: 1em;"></i>PC or Laptop</button><button onClick="tutorialSelectDevice(\'TOUCH\')"><i class="fa fa-mobile" style="margin-right: 1em;"></i>Tablet or Smartphone</button>';
                     buttons.querySelectorAll('button').forEach(function(button, i) { i == 0 ? button.style.width = '20%' : button.style.width = '40%'})
@@ -370,9 +380,10 @@
                     rightKey.style.visibility = 'visible';
                     leftKey.style.display = 'none';
                     rightKey.style.display = 'none';
-                    metronome.style.display = 'none';
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
+                    metronomeWrapper.style.display = 'none';
+                    metronomeWrapper.style.margin = 'auto';
                     device = window.isMobile ? 'touch screen'  : 'keyboard';
                     text.innerHTML = '<h3>Overview</h3>This tutorial asks you to use your <strong>' + device + '</strong> to simulate pumping a Self-Inflating Bag <strong>to a rhythm</strong>.';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
@@ -380,60 +391,87 @@
                     break;
                 case 3:
                     window.tutorialBPMState = 12;
-                    startGIFInterval(true);
+                    startGIFInterval(true, true);
                     overlay.style.justifyContent = 'space-between';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
                     leftKey.style.display = 'block';
                     rightKey.style.display = 'block'
-                    metronome.style.display = 'none';
                     leftText.style.display = 'block';
                     rightText.style.display = 'block';
+                    metronomeWrapper.style.display = 'none';
+                    metronomeWrapper.style.margin = 'auto';
                     if (window.isMobile) {
-                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>L</strong> button and your right thumb to push the <strong>R</strong> button as soon as you see <strong class="error" style="font-size:1.2rem">PUSH!</strong>. Try to keep pace!';
+                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>L</strong> button and your right thumb to push the <strong>R</strong> button as soon as you see <strong class="error" style="font-size:2rem">PUSH!</strong> Keep pace with the video! Once you have the hang, move on.';
                         buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     } else {
-                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key as soon as you see <strong class="error" style="font-size:1.2rem">PUSH!</strong>. Try to keep pace!';
+                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key as soon as you see <strong class="error" style="font-size:2rem">PUSH!</strong> Keep pace with the video! Once you have the hang, move on.';
                         buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     }
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'});
-                    break;;
+                    break;
                 case 4:
                     clearGIFInterval();
                     pauseAnimation();
+                    overlay.style.justifyContent = 'center';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
-                    leftKey.style.display = 'block';
-                    rightKey.style.display = 'block';
-                    metronome.style.display = 'flex';
+                    leftKey.style.display = 'none';
+                    rightKey.style.display = 'none';
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
-                    text.innerHTML = '<h3>How To Set Rhythm</h3>A metronome help operators keep rhythm.  Select desired breath delivery rate.  12 breaths per minute is our default rate, but please check with the clinician at your site prior to your shift.';
+                    metronomeWrapper.style.display = 'none';
+                    metronomeWrapper.style.margin = 'auto';
+                    text.innerHTML = '<h3>Good Job!</h3>Now that you see how to pump along, we\'ll next look at adjusting the rhythm to different <strong>breath per minute (bpm)</strong> rates.';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
                 case 5:
+                    clearGIFInterval();
+                    pauseAnimation();
+                    clearMetronomeSelection();
+                    overlay.style.justifyContent = 'space-between';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
-                    leftKey.style.display = 'block';
-                    rightKey.style.display = 'block';
-                    metronome.style.display = 'flex';
-                    leftText.style.display = 'block';
-                    rightText.style.display = 'block';
-                    text.innerHTML = '<h3>Trying Different Rhythms</h3>Use the metronome buttons to try pumping to the different rhythms.';
+                    leftKey.style.display = 'none';
+                    rightKey.style.display = 'none';
+                    leftText.style.display = 'none';
+                    rightText.style.display = 'none';
+                    metronomeWrapper.style.display = 'flex';
+                    metronomeWrapper.style.margin = 'auto';
+                    text.innerHTML = '<h3>How To Set Rhythm</h3>A metronome helps operators keep rhythm.  Select desired breath delivery rate below.  12 breaths per minute (BPM) is our default rate, but please check with the clinician at your site prior to your shift.';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
                 case 6:
+                    leftText.innerHTML = '';
+                    rightText.innerHTML = '';
+                    clearGIFInterval();
+                    pauseAnimation();
+                    clearMetronomeSelection();
+                    leftKey.style.visibility = 'visible';
+                    rightKey.style.visibility = 'visible';
+                    leftKey.style.display = 'block';
+                    rightKey.style.display = 'block';
+                    leftText.style.display = 'block';
+                    rightText.style.display = 'block';
+                    metronomeWrapper.style.display = 'flex';
+                    metronomeWrapper.style.margin = '0';
+                    text.innerHTML = '<h3>Trying Different Rhythms</h3>Use the metronome buttons to try pumping to the different rhythms.';
+                    buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                    buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
+                    break;
+                case 7:
                     leftKey.style.visibility = 'hidden';
                     rightKey.style.visibility = 'hidden';
                     leftKey.style.display = 'none';
                     rightKey.style.display = 'none';
-                    metronome.style.display = 'none';
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
-                    text.innerHTML = '<h3>Wrapping Up</h3>That\'s all! We hope this simulation helped. Before you go, remember you will need a metronome app on your smartphone to set the rhythm in person. <a href="https://apps.apple.com/us/app/pro-metronome-tempo-beat-subdivision-polyrhythm/id477960671" target="_blank">Click here to view the metronome app</a>' ;
+                    metronomeWrapper.style.display = 'none';
+                    metronomeWrapper.style.margin = 'auto';
+                    text.innerHTML = '<h3>Thanks For Learning With Us!</h3>That\'s all we\'ve got! We hope this simulation helped. Before you go, remember you will need a metronome app on your smartphone to set the rhythm in person. <a href="https://apps.apple.com/us/app/pro-metronome-tempo-beat-subdivision-polyrhythm/id477960671" target="_blank">Click here to view a recommended metronome app</a>.' ;
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '100%'})
                     startIntervalTutorial();
@@ -444,19 +482,23 @@
         }
         window.setPresentationState = setPresentationState;
 
-        function GIFIntervalHandler() {
+        function GIFIntervalHandler(shouldUpdateText) {
             window.tutorialShouldBePushedState = true;
-            updateText();
+            if (shouldUpdateText) {
+                updateText();
+            }
             resetAnimation();
             playAnimation();
             // switch the text back when the GIF stops
             window.setTimeout(function() {
                 window.tutorialShouldBePushedState = false;
-                updateText();
+                if (shouldUpdateText) {
+                    updateText();
+                }
             }, GIFAnimationDuration / 2);
         }
 
-        function startGIFInterval(includeDelay) {
+        function startGIFInterval(includeDelay, shouldUpdateText) {
             if (window.GIFIntervalID) {
                 window.clearInterval(window.GIFIntervalID);
             }
@@ -464,9 +506,9 @@
             if (includeDelay) {
                 readyText();
             } else {
-                GIFIntervalHandler();
+                GIFIntervalHandler(shouldUpdateText);
             }
-            window.GIFIntervalID = window.setInterval(GIFIntervalHandler, BPMToInterval(window.tutorialBPMState));
+            window.GIFIntervalID = window.setInterval(GIFIntervalHandler, BPMToInterval(window.tutorialBPMState), shouldUpdateText);
         }
 
         function clearGIFInterval() {
@@ -476,6 +518,10 @@
         }
 
         function readyText() {
+            leftText.classList.remove('error');
+            leftText.classList.remove('success');
+            rightText.classList.remove('error');
+            rightText.classList.remove('success');
             leftText.innerHTML = 'READY?';
             rightText.innerHTML = 'READY?';
         }
@@ -503,21 +549,21 @@
             } else {
                 if (leftKey.tutorialIsPushed) {
                     leftText.classList.remove('success');
-                    leftText.classList.remove('error');
-                    leftText.innerHTML = 'READY?';
+                    leftText.classList.add('error');
+                    leftText.innerHTML = 'LET GO!';
                 } else {
                     leftText.classList.remove('error');
-                    leftText.classList.remove('success');
-                    leftText.innerHTML = 'READY?';
+                    leftText.classList.add('success');
+                    leftText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" style="margin-left:10px" aria-hidden="true"></i>';
                 }
                 if (rightKey.tutorialIsPushed) {
                     rightText.classList.remove('success');
-                    rightText.classList.remove('error');
-                    rightText.innerHTML = 'READY?';;
+                    rightText.classList.add('error');
+                    rightText.innerHTML = 'LET GO!';
                 } else {
                     rightText.classList.remove('error');
-                    rightText.classList.remove('success');
-                    rightText.innerHTML = 'READY?';
+                    rightText.classList.add('success');
+                    rightText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" style="margin-left:10px" aria-hidden="true"></i>';
                 }
             }
         }
