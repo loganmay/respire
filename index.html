@@ -177,15 +177,15 @@
         var releaseSpan = '<span class="error">RELEASE!</span>'; 
         var goodSpan = '<span class="success">GOOD!</span>';
 
-        function playAnimation() {
-            // reset
-            presentation.style.animation = 'none';
-            presentation.offsetHeight; /* trigger reflow to apply the change immediately */
-            presentation.style.animation = null;
+        var GIFAnimationDuration = 2000; // milliseconds
 
-            // play
-            presentation.style.animation = 'anim 2s steps(47) 1';
+        function playAnimation(isInfinite) {
+            presentation.style.animation = 'anim ' + 2 + 's steps(47) ' + (isInfinite ? 'infinite' : '1');
             presentation.style.animationPlayState = 'running';
+        }
+
+        function pauseAnimation() {
+            presentation.style.animationPlayState = 'paused';
         }
 
         function resetAnimation() {
@@ -193,13 +193,6 @@
             presentation.offsetHeight; /* trigger reflow to apply the change immediately */
             presentation.style.animation = null;
         }
-
-        function setAnimationSpeed(BPM) {
-            var seconds = BPMToSeconds(BPM)
-            console.log('anim ' + seconds + 's steps(47) infinite');
-            presentation.style.animation = 'anim ' + seconds + 's steps(47) infinite';
-        }
-
 
         function tutorialSelectDevice(deviceType) {
             window.isMobile = deviceType == "TOUCH"
@@ -269,54 +262,30 @@
 
         function setupKeyBoardEventListeners() {
             window.document.addEventListener('keydown', function(e) {
-                    switch (e.code) {
-                        case "KeyQ":
-                            leftKey.classList.add('pushed-key');
-                            if (window.tutorialIntervalID) {
-                                leftKey.tutorialIsPushed = true;
-                                if (window.tutorialShouldBePushedState) {
-                                    leftText.innerHTML = goodSpan;
-                                } else {
-                                    leftText.innerHTML = releaseSpan;
-                                }
-                            }
-                            break;
-                        case "KeyP":
-                            rightKey.classList.add('pushed-key');
-                            if (window.tutorialIntervalID) {
-                                rightKey.tutorialIsPushed = true;
-                                if (window.tutorialShouldBePushedState) {
-                                    rightText.innerHTML = goodSpan;
-                                } else {
-                                    rightText.innerHTML = releaseSpan;
-                                }
-                            }
-                            break; 
+                switch (e.code) {
+                    case "KeyQ":
+                        leftKey.classList.add('pushed-key');
+                        leftKey.tutorialIsPushed = true;
+                        updateText();
+                        break;
+                    case "KeyP":
+                        rightKey.classList.add('pushed-key');
+                        rightKey.tutorialIsPushed = true;
+                        updateText();
+                        break; 
                     }
                 });
                 window.document.addEventListener('keyup', function(e) {
                     switch (e.code) {
                         case "KeyQ":
                             leftKey.classList.remove('pushed-key');
-                            if (window.tutorialIntervalID) {
-                                leftKey.tutorialIsPushed = false;
-                                if (window.tutorialShouldBePushedState) {
-                                    leftText.innerHTML = pushSpan;
-                                } else {
-                                    leftText.innerHTML = goodSpan;
-                                }
-                            }
+                            leftKey.tutorialIsPushed = false;
+                            updateText();
                             break;
                         case "KeyP":
                             rightKey.classList.remove('pushed-key');
-                            if (window.tutorialIntervalID) {
-                                rightKey.tutorialIsPushed = false;
-                                if (window.tutorialShouldBePushedState) {
-                                    rightText.innerHTML = pushSpan;
-                                } else {
-                                    rightText.innerHTML = goodSpan;
-                                }
-                            }
+                            rightKey.tutorialIsPushed = false;
+                            updateText();
                             break;
                     }
                 });
@@ -326,11 +295,7 @@
             b.addEventListener('click', function(e) {
                 e.preventDefault();
                 if (e.target == metronomeButtons[0]) {
-                    resetAnimation();
-                    leftText.innerHTML = "PUSH!";
-                    rightText.innerHTML = "PUSH!";
                     window.tutorialBPMState = 12;
-                    startIntervalTutorial();
                     metronomeButtons[0].style.backgroundColor = 'white';
                     metronomeButtons[0].style.color = 'rgb(159, 40, 40)';
                     metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
@@ -338,11 +303,7 @@
                     metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
                     metronomeButtons[2].style.color = 'white';
                 } else if (e.target == metronomeButtons[1]) {
-                    resetAnimation();
-                    leftText.innerHTML = "PUSH!";
-                    rightText.innerHTML = "PUSH!";
                     window.tutorialBPMState = 18;
-                    startIntervalTutorial();
                     metronomeButtons[0].style.color = 'white';
                     metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
                     metronomeButtons[1].style.color = 'rgb(186, 32, 32)';
@@ -350,11 +311,7 @@
                     metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
                     metronomeButtons[2].style.color = 'white';
                 } else if (e.target == metronomeButtons[2]) {
-                    resetAnimation();
-                    leftText.innerHTML = "PUSH!";
-                    rightText.innerHTML = "PUSH!";
                     window.tutorialBPMState = 24;
-                    startIntervalTutorial();
                     metronomeButtons[0].style.color = 'white';
                     metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
                     metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
@@ -362,12 +319,14 @@
                     metronomeButtons[2].style.color = 'rgb(227, 18, 18)';
                     metronomeButtons[2].style.backgroundColor = 'white';
                 }
+                startGIFInterval();
             });
         })
 
         function setPresentationState(stateIndex) {
             switch (stateIndex) {
                 case 0:
+                    playAnimation(true);
                     overlay.style.justifyContent = 'center';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
@@ -376,13 +335,12 @@
                     metronome.style.display = 'none';
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
-                    presentation.style.animation = 'anim 2s steps(47) infinite';
-                    presentation.style.animationPlayState = 'running';
                     text.innerHTML = '<h3>Interactive Tutorial</h3>Squeezing the Self-Inflating Bag to a Rhythm';
                     buttons.innerHTML = '<button onClick="setPresentationState(++tutorialPresentationState)">Click To Get Started</button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '100%'})
                     break;
                 case 1:
+                    pauseAnimation();
                     overlay.style.justifyContent = 'center';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
@@ -391,12 +349,13 @@
                     metronome.style.display = 'none';
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
-                    presentation.style.animationPlayState = 'paused';
                     text.innerHTML = '<h3>Select Your Device</h3><i class="fa fa-long-arrow-down"></i>';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="tutorialSelectDevice(\'KEYBOARD\')"><i class="fa fa fa-laptop" style="margin-right: 1em;"></i>PC or Laptop</button><button onClick="tutorialSelectDevice(\'TOUCH\')"><i class="fa fa-mobile" style="margin-right: 1em;"></i>Tablet or Smartphone</button>';
                     buttons.querySelectorAll('button').forEach(function(button, i) { i == 0 ? button.style.width = '20%' : button.style.width = '40%'})
                     break;
                 case 2:
+                    clearGIFInterval();
+                    pauseAnimation();
                     overlay.style.justifyContent = 'center';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
@@ -405,13 +364,14 @@
                     metronome.style.display = 'none';
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
-                    presentation.style.animationPlayState = 'paused';
                     device = window.isMobile ? 'touch screen'  : 'keyboard';
                     text.innerHTML = '<h3>Overview</h3>This tutorial asks you to use your <strong>' + device + '</strong> to simulate pumping a Self-Inflating Bag <strong>to a rhythm</strong>.';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
                 case 3:
+                    window.tutorialBPMState = 12;
+                    startGIFInterval();
                     overlay.style.justifyContent = 'space-between';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
@@ -429,30 +389,10 @@
                     }
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'});
-                    presentation.style.animationPlayState = 'running';
-                    window.tutorialBPMState = 12;
-                    startIntervalTutorial();
-                    break;
+                    break;;
                 case 4:
-                    overlay.style.justifyContent = 'space-between';
-                    leftKey.style.visibility = 'visible';
-                    rightKey.style.visibility = 'visible';
-                    leftKey.style.display = 'block';
-                    rightKey.style.display = 'block';
-                    metronome.style.display = 'none';
-                    leftText.style.display = 'none';
-                    rightText.style.display = 'none';
-                    presentation.style.animationPlayState = 'paused';
-                    if (window.isMobile) {
-                        text.innerHTML = '<h3>How To Use Device</h3>Pretend your smartphone or tablet is the bag. Use your left thumb to push the <strong>L</strong> button and your right thumb to push the <strong>R</strong> button. Try it now!';
-                        buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
-                    } else {
-                        text.innerHTML = '<h3>How To Use Keyboard</h3>Pretend your keyboard is the bag. Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key. Try it now!';
-                        buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
-                    }
-                    buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
-                    break;
-                case 5:
+                    clearGIFInterval();
+                    pauseAnimation();
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
                     leftKey.style.display = 'block';
@@ -463,44 +403,8 @@
                     text.innerHTML = '<h3>How To Set Rhythm</h3>A metronome help operators keep rhythm.  Select desired breath delivery rate.  12 breaths per minute is our default rate, but please check with the clinician at your site prior to your shift.';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
-                    startIntervalTutorial();
                     break;
-                case 6:
-                    leftKey.style.visibility = 'visible';
-                    rightKey.style.visibility = 'visible';
-                    leftKey.style.display = 'block';
-                    rightKey.style.display = 'block';
-                    metronome.style.display = 'none';
-                    leftText.style.display = 'block';
-                    rightText.style.display = 'block';
-                    text.innerHTML = '<h3>What To Do</h3>Push Q and P when you see <strong class="error" style="font-size:1.2rem">PUSH!</strong><br /> Release Q and P when you see <strong class="error" style="font-size:1.2rem">RELEASE!</strong><br /> Don\'t change when you see <strong class="success" style="font-size:1.2rem">GOOD!</strong><br /> Move on once you have the hang of it.';
-                    buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
-                    buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
-                    startIntervalTutorial();
-                    break;
-                case 7:
-                    leftKey.style.visibility = 'visible';
-                    rightKey.style.visibility = 'visible';
-                    leftKey.style.display = 'block';
-                    rightKey.style.display = 'block';
-                    metronome.style.display = 'flex';
-                    leftText.style.display = 'none';
-                    rightText.style.display = 'none';
-                    window.clearInterval(window.tutorialIntervalID);
-                    leftText.innerHTML = 'READY?'
-                    rightText.innerHTML = 'READY?'
-                    text.innerHTML = '<h3>Adding a Metronome</h3>A metronome help operators keep rhythm.  Select desired breath delivery rate.  12 breaths per minute is our default rate, but please check with the clinician at your site prior to your shift.';
-                    buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
-                    buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
-                    window.tutorialBPMState = 18;
-                    metronomeButtons[0].style.color = 'white';
-                    metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
-                    metronomeButtons[1].style.color = 'rgb(186, 32, 32)';
-                    metronomeButtons[1].style.backgroundColor = 'white';
-                    metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
-                    metronomeButtons[2].style.color = 'white';
-                    break;
-                case 8:
+                case 5:
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
                     leftKey.style.display = 'block';
@@ -511,9 +415,8 @@
                     text.innerHTML = '<h3>Trying Different Rhythms</h3>Use the metronome buttons to try pumping to the different rhythms.';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
-                    startIntervalTutorial();
                     break;
-                case 9:
+                case 6:
                     leftKey.style.visibility = 'hidden';
                     rightKey.style.visibility = 'hidden';
                     leftKey.style.display = 'none';
@@ -521,7 +424,7 @@
                     metronome.style.display = 'none';
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
-                    text.innerHTML = '<h3>Wrapping Up</h3>That\'s all! We hope this simulation helped. Before you go, remember you will need a metronome app on your smartphone to set the rhythm in person. <a href="https://apps.apple.com/us/app/pro-metronome-tempo-beat-subdivision-polyrhythm/id477960671" target="_blank">Click here to view the app</a>' ;
+                    text.innerHTML = '<h3>Wrapping Up</h3>That\'s all! We hope this simulation helped. Before you go, remember you will need a metronome app on your smartphone to set the rhythm in person. <a href="https://apps.apple.com/us/app/pro-metronome-tempo-beat-subdivision-polyrhythm/id477960671" target="_blank">Click here to view the metronome app</a>' ;
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '100%'})
                     startIntervalTutorial();
@@ -532,42 +435,71 @@
         }
         window.setPresentationState = setPresentationState;
 
-        function startIntervalTutorial() {
-            if (window.tutorialIntervalID) {
-                window.clearInterval(window.tutorialIntervalID);
-            }
+        function GIFIntervalHandler() {
             window.tutorialShouldBePushedState = true;
-            window.tutorialIntervalID = window.setInterval(tutorialInterval, BPMToInterval(window.tutorialBPMState));
+            updateText();
+            resetAnimation();
+            playAnimation();
+            // switch the text back when the GIF stops
+            window.setTimeout(function() {
+                window.tutorialShouldBePushedState = false;
+                updateText();
+            }, GIFAnimationDuration / 2);
         }
 
-        function tutorialInterval() {
-            if (tutorialShouldBePushedState) {
-                playAnimation();
+        function startGIFInterval() {
+            if (window.GIFIntervalID) {
+                window.clearInterval(window.GIFIntervalID);
             }
-            window.tutorialShouldBePushedState = !window.tutorialShouldBePushedState;
+            resetAnimation();
+            GIFIntervalHandler();
+            window.GIFIntervalID = window.setInterval(GIFIntervalHandler, BPMToInterval(window.tutorialBPMState));
+        }
+
+        function clearGIFInterval() {
+            if (window.GIFIntervalID) {
+                window.clearInterval(window.GIFIntervalID);
+            }
+        }
+
+        function updateText() {
             if (window.tutorialShouldBePushedState) {
                 if (leftKey.tutorialIsPushed) {
-                    leftText.innerHTML = goodSpan;
+                    leftText.classList.remove('error');
+                    leftText.classList.add('success');
+                    leftText.innerHTML = 'PUSH!';
                 } else {
-                    leftText.innerHTML = pushSpan;
+                    leftText.classList.remove('success');
+                    leftText.classList.add('error');
+                    leftText.innerHTML = 'PUSH!';
                 }
                 if (rightKey.tutorialIsPushed) {
-                    rightText.innerHTML = goodSpan;
+                    rightText.classList.remove('success');
+                    rightText.classList.add('error');
+                    rightText.innerHTML = 'PUSH!';
                 } else {
-                    rightText.innerHTML = pushSpan;
+                    rightText.classList.remove('success');
+                    rightText.classList.add('error');
+                    rightText.innerHTML = 'PUSH!';;
                 }
             } else {
                 if (leftKey.tutorialIsPushed) {
-                    leftText.innerHTML = releaseSpan;
+                    leftText.classList.remove('success');
+                    leftText.classList.add('error');
+                    leftText.innerHTML = 'LET GO!';
                 } else {
-                    leftText.classList.add("success");
-                    leftText.innerHTML = "RELEASE!";
+                    leftText.classList.remove('error');
+                    leftText.classList.add('success');
+                    leftText.innerHTML = 'LET GO!';
                 }
                 if (rightKey.tutorialIsPushed) {
-                    rightText.innerHTML = releaseSpan;
+                    rightText.classList.remove('success');
+                    rightText.classList.add('error');
+                    rightText.innerHTML = 'LET GO!';;
                 } else {
-                    rightText.classList.add("success");
-                    rightText.innerHTML = "RELEASE!";
+                    rightText.classList.remove('error');
+                    rightText.classList.add('success');
+                    rightText.innerHTML = 'LET GO!';
                 }
             }
         }
@@ -577,7 +509,7 @@
         }
 
         function BPMToInterval(BPM) {
-            return (60000 / BPM) / 2;
+            return (60000 / BPM);
         }
 
         window.document.addEventListener('DOMContentLoaded', function() {
