@@ -390,10 +390,10 @@
                     leftText.style.display = 'block';
                     rightText.style.display = 'block';
                     if (window.isMobile) {
-                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>L</strong> button and your right thumb to push the <strong>R</strong> button. Try to keep pace!';
+                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>L</strong> button and your right thumb to push the <strong>R</strong> button as soon as you see <strong class="error" style="font-size:1.2rem">PUSH!</strong>. Try to keep pace!';
                         buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     } else {
-                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key. Try to keep pace!';
+                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key as soon as you see <strong class="error" style="font-size:1.2rem">PUSH!</strong>. Try to keep pace!';
                         buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     }
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
@@ -485,16 +485,16 @@
                 if (leftKey.tutorialIsPushed) {
                     leftText.classList.remove('error');
                     leftText.classList.add('success');
-                    leftText.innerHTML = 'PUSH!';
+                    leftText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" style="margin-left:10px" aria-hidden="true"></i>';
                 } else {
                     leftText.classList.remove('success');
                     leftText.classList.add('error');
                     leftText.innerHTML = 'PUSH!';
                 }
                 if (rightKey.tutorialIsPushed) {
-                    rightText.classList.remove('success');
-                    rightText.classList.add('error');
-                    rightText.innerHTML = 'PUSH!';
+                    rightText.classList.remove('error');
+                    rightText.classList.add('success');
+                    rightText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" style="margin-left:10px" aria-hidden="true"></i>';
                 } else {
                     rightText.classList.remove('success');
                     rightText.classList.add('error');
@@ -503,21 +503,21 @@
             } else {
                 if (leftKey.tutorialIsPushed) {
                     leftText.classList.remove('success');
-                    leftText.classList.add('error');
-                    leftText.innerHTML = 'LET GO!';
+                    leftText.classList.remove('error');
+                    leftText.innerHTML = 'READY?';
                 } else {
                     leftText.classList.remove('error');
-                    leftText.classList.add('success');
-                    leftText.innerHTML = 'LET GO!';
+                    leftText.classList.remove('success');
+                    leftText.innerHTML = 'READY?';
                 }
                 if (rightKey.tutorialIsPushed) {
                     rightText.classList.remove('success');
-                    rightText.classList.add('error');
-                    rightText.innerHTML = 'LET GO!';;
+                    rightText.classList.remove('error');
+                    rightText.innerHTML = 'READY?';;
                 } else {
                     rightText.classList.remove('error');
-                    rightText.classList.add('success');
-                    rightText.innerHTML = 'LET GO!';
+                    rightText.classList.remove('success');
+                    rightText.innerHTML = 'READY?';
                 }
             }
         }
