@@ -265,13 +265,17 @@
                 switch (e.code) {
                     case "KeyQ":
                         leftKey.classList.add('pushed-key');
-                        leftKey.tutorialIsPushed = true;
-                        updateText();
+                        if (window.GIFIntervalID) {
+                            leftKey.tutorialIsPushed = true;
+                            updateText();
+                        }
                         break;
                     case "KeyP":
                         rightKey.classList.add('pushed-key');
-                        rightKey.tutorialIsPushed = true;
-                        updateText();
+                        if (window.GIFIntervalID) {
+                            rightKey.tutorialIsPushed = true;
+                            updateText();
+                        }
                         break; 
                     }
                 });
@@ -279,13 +283,17 @@
                     switch (e.code) {
                         case "KeyQ":
                             leftKey.classList.remove('pushed-key');
-                            leftKey.tutorialIsPushed = false;
-                            updateText();
+                            if (window.GIFIntervalID) {
+                                leftKey.tutorialIsPushed = false;
+                                updateText();
+                            }
                             break;
                         case "KeyP":
                             rightKey.classList.remove('pushed-key');
-                            rightKey.tutorialIsPushed = false;
-                            updateText();
+                            if (window.GIFIntervalID) {
+                                rightKey.tutorialIsPushed = false;
+                                updateText();
+                            }
                             break;
                     }
                 });
@@ -340,6 +348,7 @@
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '100%'})
                     break;
                 case 1:
+                    clearGIFInterval();
                     pauseAnimation();
                     overlay.style.justifyContent = 'center';
                     leftKey.style.visibility = 'visible';
@@ -371,7 +380,7 @@
                     break;
                 case 3:
                     window.tutorialBPMState = 12;
-                    startGIFInterval();
+                    startGIFInterval(true);
                     overlay.style.justifyContent = 'space-between';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
@@ -447,12 +456,16 @@
             }, GIFAnimationDuration / 2);
         }
 
-        function startGIFInterval() {
+        function startGIFInterval(includeDelay) {
             if (window.GIFIntervalID) {
                 window.clearInterval(window.GIFIntervalID);
             }
             resetAnimation();
-            GIFIntervalHandler();
+            if (includeDelay) {
+                readyText();
+            } else {
+                GIFIntervalHandler();
+            }
             window.GIFIntervalID = window.setInterval(GIFIntervalHandler, BPMToInterval(window.tutorialBPMState));
         }
 
@@ -460,6 +473,11 @@
             if (window.GIFIntervalID) {
                 window.clearInterval(window.GIFIntervalID);
             }
+        }
+
+        function readyText() {
+            leftText.innerHTML = 'READY?';
+            rightText.innerHTML = 'READY?';
         }
 
         function updateText() {
