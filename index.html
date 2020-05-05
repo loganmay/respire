@@ -8,6 +8,7 @@
 <html>
   <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pumping a Self-Inflating Bag</title>
     <style type="text/css">
         body {
@@ -112,6 +113,7 @@
         .metronome-title {
             font-size: 1.2em;
             margin-bottom: 5px;
+            margin-top:15px;
             font-weight: bold;
         }
         ul.metronome {
@@ -138,6 +140,31 @@
         }
         .error {
             color: #a94442;
+        }
+        @media only screen and (max-width: 786px) {
+            #presentation {
+                height: 450px;
+                background-size: cover;
+                width: 100%;
+            }
+            #presentation-buttons {
+                align-items: stretch;
+            }
+            .squeeze-overlay {
+                padding: 0 1em 0;
+            }
+            .squeeze-overlay-text, .left-text, .right-text {
+                font-size: 1.5em;
+            }
+            .left-text, .right-text {
+                text-align: center;
+            }
+            .metronome-wrapper {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 15px;
+            }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
@@ -190,9 +217,15 @@
         var goodSpan = '<span class="success">GOOD!</span>';
 
         var GIFAnimationDuration = 2000; // milliseconds
+        var GIFAnimationSeconds = GIFAnimationDuration / 1000;
+        var GIFAnimationSteps = (37600 / presentation.offsetWidth).toFixed(0);
 
         function playAnimation(isInfinite) {
-            presentation.style.animation = 'anim ' + 2 + 's steps(47) ' + (isInfinite ? 'infinite' : '1');
+            GIFAnimationSteps = (37600 / presentation.offsetWidth).toFixed(0);
+            var ratio = 800 / 450;
+            console.log(presentation.offsetWidth);
+            console.log(GIFAnimationSteps);
+            presentation.style.animation = 'anim ' + 2 + 's steps(' + 47 + ') ' + (isInfinite ? 'infinite' : '1');
             presentation.style.animationPlayState = 'running';
         }
 
@@ -201,6 +234,7 @@
         }
 
         function resetAnimation() {
+            GIFAnimationSteps = (37600 / presentation.offsetWidth).toFixed(0);
             presentation.style.animation = 'none';
             presentation.offsetHeight; /* trigger reflow to apply the change immediately */
             presentation.style.animation = null;
@@ -369,7 +403,7 @@
                     metronomeWrapper.style.display = 'none';
                     metronomeWrapper.style.margin = 'auto';
                     text.innerHTML = '<h3>Select Your Device</h3><i class="fa fa-long-arrow-down"></i>';
-                    buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="tutorialSelectDevice(\'KEYBOARD\')"><i class="fa fa fa-laptop" style="margin-right: 1em;"></i>PC or Laptop</button><button onClick="tutorialSelectDevice(\'TOUCH\')"><i class="fa fa-mobile" style="margin-right: 1em;"></i>Tablet or Smartphone</button>';
+                    buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="tutorialSelectDevice(\'KEYBOARD\')"><i class="fa fa fa-laptop" style="margin-right: 1em;"></i>PC or Laptop</button><button onClick="tutorialSelectDevice(\'TOUCH\')"><i class="fa fa-mobile" style="margin-right: 1em;"></i>Tablet or Phone</button>';
                     buttons.querySelectorAll('button').forEach(function(button, i) { i == 0 ? button.style.width = '20%' : button.style.width = '40%'})
                     break;
                 case 2:
@@ -403,7 +437,7 @@
                     metronomeWrapper.style.display = 'none';
                     metronomeWrapper.style.margin = 'auto';
                     if (window.isMobile) {
-                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>L</strong> button and your right thumb to push the <strong>R</strong> button as soon as you see <strong class="error" style="font-size:2rem">PUSH!</strong> Keep pace with the video! Once you have the hang, get more practice on the next slide.';
+                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>L</strong> button and your right thumb to push the <strong>R</strong> button as soon as you see <strong class="error" style="font-size:1.5rem">PUSH!</strong> Keep pace with the video! Once you have the hang, get more practice on the next slide.';
                         buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     } else {
                         text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key as soon as you see <strong class="error" style="font-size:2rem">PUSH!</strong> Keep pace with the video! Once you have the hang, get more practice on the next slide.';
@@ -413,8 +447,8 @@
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'});
                     break;
                 case 4:
-                    window.tutorialBPMState = 12;
-                    startGIFInterval(true, true);
+                    // window.tutorialBPMState = 12;
+                    // startGIFInterval(true, true);
                     overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.35)';
                     overlay.style.justifyContent = 'space-between';
                     leftKey.style.visibility = 'visible';
@@ -575,7 +609,11 @@
                 if (leftKey.tutorialIsPushed) {
                     leftText.classList.remove('error');
                     leftText.classList.add('success');
-                    leftText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" style="margin-left:10px" aria-hidden="true"></i>';
+                    if (window.isMobile) {
+                        leftText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" aria-hidden="true"></i>';
+                    } else {
+                        leftText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" style="margin-left:10px" aria-hidden="true"></i>';
+                    }
                 } else {
                     leftText.classList.remove('success');
                     leftText.classList.add('error');
@@ -584,7 +622,11 @@
                 if (rightKey.tutorialIsPushed) {
                     rightText.classList.remove('error');
                     rightText.classList.add('success');
-                    rightText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" style="margin-left:10px" aria-hidden="true"></i>';
+                    if (window.isMobile) {
+                        rightText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" aria-hidden="true"></i>';
+                    } else {
+                        rightText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" style="margin-left:10px" aria-hidden="true"></i>';
+                    }
                 } else {
                     rightText.classList.remove('success');
                     rightText.classList.add('error');
@@ -598,7 +640,11 @@
                 } else {
                     leftText.classList.remove('error');
                     leftText.classList.add('success');
-                    leftText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" style="margin-left:10px" aria-hidden="true"></i>';
+                    if (window.isMobile) {
+                        leftText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" aria-hidden="true"></i>';
+                    } else {
+                        leftText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" style="margin-left:10px" aria-hidden="true"></i>';
+                    }
                 }
                 if (rightKey.tutorialIsPushed) {
                     rightText.classList.remove('success');
@@ -607,7 +653,11 @@
                 } else {
                     rightText.classList.remove('error');
                     rightText.classList.add('success');
-                    rightText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" style="margin-left:10px" aria-hidden="true"></i>';
+                    if (window.isMobile) {
+                        rightText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" aria-hidden="true"></i>';
+                    } else {
+                        rightText.innerHTML = 'NICE! <i class="fa fa-thumbs-o-up" style="margin-left:10px" aria-hidden="true"></i>';
+                    }
                 }
             }
         }
