@@ -38,8 +38,6 @@
             background-size: cover;
             display: flex;
             flex-direction: column;
-            /* animation: anim 2s steps(47) infinite; */
-            /* animation-play-state: running; */
         }
         @keyframes anim {
             100% { background-position: -37600px; }
@@ -342,7 +340,9 @@
         function setPresentationState(stateIndex) {
             switch (stateIndex) {
                 case 0:
-                    playAnimation(true);
+                    window.tutorialBPMState = 12;
+                    playAnimation();
+                    startGIFInterval(false, false);
                     overlay.style.justifyContent = 'center';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
@@ -384,14 +384,15 @@
                     rightText.style.display = 'none';
                     metronomeWrapper.style.display = 'none';
                     metronomeWrapper.style.margin = 'auto';
-                    device = window.isMobile ? 'touch screen'  : 'keyboard';
-                    text.innerHTML = '<h3>Overview</h3>This tutorial asks you to use your <strong>' + device + '</strong> to simulate pumping a Self-Inflating Bag <strong>to a rhythm</strong>.';
+                    device = window.isMobile ? 'touch screen' : 'keyboard';
+                    text.innerHTML = '<h3>Overview</h3>This tutorial asks you to use your <strong>' + device + '</strong> to simulate squeezing a Self-Inflating Bag <strong>to a rhythm</strong>.';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
                 case 3:
                     window.tutorialBPMState = 12;
                     startGIFInterval(true, true);
+                    overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.75)';
                     overlay.style.justifyContent = 'space-between';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
@@ -402,18 +403,42 @@
                     metronomeWrapper.style.display = 'none';
                     metronomeWrapper.style.margin = 'auto';
                     if (window.isMobile) {
-                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>L</strong> button and your right thumb to push the <strong>R</strong> button as soon as you see <strong class="error" style="font-size:2rem">PUSH!</strong> Keep pace with the video! Once you have the hang, move on.';
+                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>L</strong> button and your right thumb to push the <strong>R</strong> button as soon as you see <strong class="error" style="font-size:2rem">PUSH!</strong> Keep pace with the video! Once you have the hang, get more practice on the next slide.';
                         buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     } else {
-                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key as soon as you see <strong class="error" style="font-size:2rem">PUSH!</strong> Keep pace with the video! Once you have the hang, move on.';
+                        text.innerHTML = '<h3>Let\'s Do It!</h3>Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key as soon as you see <strong class="error" style="font-size:2rem">PUSH!</strong> Keep pace with the video! Once you have the hang, get more practice on the next slide.';
                         buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     }
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'});
                     break;
                 case 4:
+                    window.tutorialBPMState = 12;
+                    startGIFInterval(true, true);
+                    overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.35)';
+                    overlay.style.justifyContent = 'space-between';
+                    leftKey.style.visibility = 'visible';
+                    rightKey.style.visibility = 'visible';
+                    leftKey.style.display = 'block';
+                    rightKey.style.display = 'block'
+                    leftText.style.display = 'block';
+                    rightText.style.display = 'block';
+                    metronomeWrapper.style.display = 'none';
+                    metronomeWrapper.style.margin = 'auto';
+                    if (window.isMobile) {
+                        text.innerHTML = '';
+                        buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                    } else {
+                        text.innerHTML = '';
+                        buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                    }
+                    buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                    buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'});
+                    break;
+                case 5:
                     clearGIFInterval();
                     pauseAnimation();
+                    overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.75)';
                     overlay.style.justifyContent = 'center';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
@@ -423,14 +448,15 @@
                     rightText.style.display = 'none';
                     metronomeWrapper.style.display = 'none';
                     metronomeWrapper.style.margin = 'auto';
-                    text.innerHTML = '<h3>Good Job!</h3>Now that you see how to pump along, we\'ll next look at adjusting the rhythm to different <strong>breath per minute (bpm)</strong> rates.';
+                    text.innerHTML = '<h3>Good Job! 😃</h3>Now that you see how to pump along, we\'ll next look at adjusting the rhythm to different <strong>breath per minute (bpm)</strong> rates.';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
-                case 5:
+                case 6:
                     clearGIFInterval();
                     pauseAnimation();
                     clearMetronomeSelection();
+                    overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.75)';
                     overlay.style.justifyContent = 'space-between';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
@@ -444,12 +470,13 @@
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
-                case 6:
+                case 7:
                     leftText.innerHTML = '';
                     rightText.innerHTML = '';
                     clearGIFInterval();
                     pauseAnimation();
                     clearMetronomeSelection();
+                    overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.75)';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
                     leftKey.style.display = 'block';
@@ -458,13 +485,30 @@
                     rightText.style.display = 'block';
                     metronomeWrapper.style.display = 'flex';
                     metronomeWrapper.style.margin = '0';
-                    text.innerHTML = '<h3>Trying Different Rhythms</h3>Use the metronome buttons to try pumping to the different rhythms.';
+                    text.innerHTML = '<h3>Trying Different Rhythms</h3>Use the metronome buttons to try pumping to the different rhythms. You can use the next slide to clear the text while you practice.';
+                    buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                    buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'});
+                    break;
+                case 8:
+                    leftText.innerHTML = '';
+                    rightText.innerHTML = '';
+                    overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.35)';
+                    leftKey.style.visibility = 'visible';
+                    rightKey.style.visibility = 'visible';
+                    leftKey.style.display = 'block';
+                    rightKey.style.display = 'block';
+                    leftText.style.display = 'block';
+                    rightText.style.display = 'block';
+                    metronomeWrapper.style.display = 'flex';
+                    metronomeWrapper.style.margin = '0';
+                    text.innerHTML = '';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
-                case 7:
+                case 9:
                     leftKey.style.visibility = 'hidden';
                     rightKey.style.visibility = 'hidden';
+                    overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.75)';
                     leftKey.style.display = 'none';
                     rightKey.style.display = 'none';
                     leftText.style.display = 'none';
