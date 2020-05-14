@@ -77,6 +77,18 @@
         #presentation-buttons button:hover {
             background-color: #2a88f5;
         }
+        #presentation-buttons button:disabled,
+        #presentation-buttons button[disabled] {
+            background-color: #4788d1;
+            color: rgba(255,255,255,0.5);
+            cursor:auto;
+        }
+        #presentation-buttons button:disabled:hover,
+        #presentation-buttons button[disabled]:hover {
+            background-color: #4788d1;
+            color: rgba(255,255,255,0.5);
+            cursor:auto;
+        }
         .bottom-buttons-wrapper {
             display: flex;
             justify-content: space-between;
@@ -178,12 +190,21 @@
                 <div class="left-key" style="display:none;"></div>
                 <div class="left-text" style="display:none;"></div>
                 <div class="metronome-wrapper">
+                    <div class="metronome-wrapper" style="margin: 0px; display: flex;position: relative;">
+                        <img class="floating-phone" style="height: 145px;" src="./assets/phone_blue_screen.png">
+                        <div class="metronome-speed" style="position: absolute;left: 50%;transform: translate(-50%, -50%);top: 50%;display:flex;flex-direction: column;font-size: 1.5em;color: white;">
+                            <div style="background: lightblue;border-radius: 100px;padding: .em;"><i class="fa fa-chevron-up" style="position: relative;bottom: 3px;"></i></div>
+                            <div>12</div>
+                            <div style="background: lightblue;border-radius: 100px;"><i class="fa fa-chevron-down"></i></div>
+                        </div>               
+                    </div>
+                    <!-- 
                     <div class="metronome-title">Select BPM</div>
                     <ul class="metronome">
                         <li>12</li>
                         <li style="background-color:rgb(186, 32, 32);border-color:rgb(186, 32, 32)">18</li>
                         <li style="background-color:rgb(227, 18, 18);border-color:rgb(227, 18, 18)">24</li>
-                    </ul>
+                    </ul> -->
                 </div>
                 <div class="right-text" style="display:none;"></div>
                 <div class="right-key" style="display:none;"></div>
@@ -198,6 +219,9 @@
         window.tutorialBPMState = 18;
         window.tutorialShouldBePushedState = false;
         window.GIFIntervalID = null;
+        window.tutorialCurrentScore = 0;
+        window.tutorialTotalReps = 1;
+        window.tutorialIsSimulation = false;
 
         var presentation = document.querySelector('#presentation');
         var overlay = document.querySelector('.squeeze-overlay');
@@ -207,8 +231,8 @@
         var rightKey = document.querySelector('.right-key');
         leftKey.tutorialIsPushed = false;
         rightKey.tutorialIsPushed = false;
-        var metronome = document.querySelector('.metronome');
-        var metronomeButtons = metronome.querySelectorAll('li');
+        // var metronome = document.querySelector('.metronome');
+        // var metronomeButtons = metronome.querySelectorAll('li');
         var leftText = document.querySelector('.left-text');
         var rightText = document.querySelector('.right-text');
         var metronomeWrapper = document.querySelector('.metronome-wrapper');
@@ -261,6 +285,7 @@
                 if (window.GIFIntervalID) {
                     leftKey.tutorialIsPushed = true;
                     updateText();
+                    countScore();
                 }
             });
             rightKey.addEventListener('touchstart', function(e) {
@@ -269,6 +294,7 @@
                 if (window.GIFIntervalID) {
                     rightKey.tutorialIsPushed = true;
                     updateText();
+                    countScore();
                 }
             });
             leftKey.addEventListener('touchend', function(e) {
@@ -277,6 +303,7 @@
                 if (window.GIFIntervalID) {
                     leftKey.tutorialIsPushed = false;
                     updateText();
+                    countScore();
                 }
             });
             rightKey.addEventListener('touchend', function(e) {
@@ -285,6 +312,7 @@
                 if (window.GIFIntervalID) {
                     rightKey.tutorialIsPushed = false;
                     updateText();
+                    countScore();
                 }
             });
         }
@@ -297,6 +325,7 @@
                         if (window.GIFIntervalID) {
                             leftKey.tutorialIsPushed = true;
                             updateText();
+                            countScore();
                         }
                         break;
                     case "KeyP":
@@ -304,6 +333,7 @@
                         if (window.GIFIntervalID) {
                             rightKey.tutorialIsPushed = true;
                             updateText();
+                            countScore();
                         }
                         break; 
                     }
@@ -315,6 +345,7 @@
                             if (window.GIFIntervalID) {
                                 leftKey.tutorialIsPushed = false;
                                 updateText();
+                                countScore();
                             }
                             break;
                         case "KeyP":
@@ -322,52 +353,53 @@
                             if (window.GIFIntervalID) {
                                 rightKey.tutorialIsPushed = false;
                                 updateText();
+                                countScore();
                             }
                             break;
                     }
                 });
         }
 
-        metronomeButtons.forEach(function(b) {
-            b.addEventListener('click', function(e) {
-                e.preventDefault();
-                if (e.target == metronomeButtons[0]) {
-                    window.tutorialBPMState = 12;
-                    metronomeButtons[0].style.backgroundColor = 'white';
-                    metronomeButtons[0].style.color = 'rgb(159, 40, 40)';
-                    metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
-                    metronomeButtons[1].style.color = 'white';
-                    metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
-                    metronomeButtons[2].style.color = 'white';
-                } else if (e.target == metronomeButtons[1]) {
-                    window.tutorialBPMState = 18;
-                    metronomeButtons[0].style.color = 'white';
-                    metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
-                    metronomeButtons[1].style.color = 'rgb(186, 32, 32)';
-                    metronomeButtons[1].style.backgroundColor = 'white';
-                    metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
-                    metronomeButtons[2].style.color = 'white';
-                } else if (e.target == metronomeButtons[2]) {
-                    window.tutorialBPMState = 24;
-                    metronomeButtons[0].style.color = 'white';
-                    metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
-                    metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
-                    metronomeButtons[1].style.color = 'white';
-                    metronomeButtons[2].style.color = 'rgb(227, 18, 18)';
-                    metronomeButtons[2].style.backgroundColor = 'white';
-                }
-                startGIFInterval(false, window.tutorialPresentationState == 6 || window.tutorialPresentationState == 7 || window.tutorialPresentationState == 8);
-            });
-        });
+        // metronomeButtons.forEach(function(b) {
+        //     b.addEventListener('click', function(e) {
+        //         e.preventDefault();
+        //         if (e.target == metronomeButtons[0]) {
+        //             window.tutorialBPMState = 12;
+        //             metronomeButtons[0].style.backgroundColor = 'white';
+        //             metronomeButtons[0].style.color = 'rgb(159, 40, 40)';
+        //             metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
+        //             metronomeButtons[1].style.color = 'white';
+        //             metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
+        //             metronomeButtons[2].style.color = 'white';
+        //         } else if (e.target == metronomeButtons[1]) {
+        //             window.tutorialBPMState = 18;
+        //             metronomeButtons[0].style.color = 'white';
+        //             metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
+        //             metronomeButtons[1].style.color = 'rgb(186, 32, 32)';
+        //             metronomeButtons[1].style.backgroundColor = 'white';
+        //             metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
+        //             metronomeButtons[2].style.color = 'white';
+        //         } else if (e.target == metronomeButtons[2]) {
+        //             window.tutorialBPMState = 24;
+        //             metronomeButtons[0].style.color = 'white';
+        //             metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
+        //             metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
+        //             metronomeButtons[1].style.color = 'white';
+        //             metronomeButtons[2].style.color = 'rgb(227, 18, 18)';
+        //             metronomeButtons[2].style.backgroundColor = 'white';
+        //         }
+        //         startGIFInterval(false, window.tutorialPresentationState == 6 || window.tutorialPresentationState == 7 || window.tutorialPresentationState == 8);
+        //     });
+        // });
 
         function clearMetronomeSelection() {
             window.tutorialBPMState = 12;
-            metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
-            metronomeButtons[0].style.color = 'white';
-            metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
-            metronomeButtons[1].style.color = 'white';
-            metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
-            metronomeButtons[2].style.color = 'white';
+            // metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
+            // metronomeButtons[0].style.color = 'white';
+            // metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
+            // metronomeButtons[1].style.color = 'white';
+            // metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
+            // metronomeButtons[2].style.color = 'white';
         }
 
         function setPresentationState(stateIndex) {
@@ -423,6 +455,7 @@
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
                 case 3:
+                    window.tutorialIsSimulation = false;
                     clearGIFInterval();
                     pauseAnimation();
                     clearCueText();
@@ -441,13 +474,14 @@
                         text.innerHTML = '<h3>How It Works</h3>Use your left thumb to push the <strong>L</strong> button and your right thumb to push the <strong>R</strong> button as soon as you see <strong class="error" style="font-size:1.5rem">PUSH!</strong> Keep pace with the video! Once you have the hang, get more practice on the next slide.';
                         buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     } else {
-                        text.innerHTML = '<h3>How It Works</h3>On the next slide, the simulation will begin. Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key. Your goal is to keep pace with the video. Cues like <strong class="error" style="font-size:2rem">PUSH!</strong>, <strong class="error" style="font-size:2rem">LET GO!</strong>, <strong class="success" style="font-size:2rem">HOLD!</strong>, and <strong class="success" style="font-size:2rem">STAY!</strong> will help you along.';
+                        text.innerHTML = '<h3>How It Works</h3>On the next slide, the simulation will begin. Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key. Your goal is push and let go in sync with the video <strong>for 1 minute</strong>. The cues <strong class="error" style="font-size:2rem">PUSH!</strong> and <strong class="error" style="font-size:2rem">LET GO!</strong> will help you along.';
                         buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     }
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'});
                     break;
                 case 4:
+                    window.tutorialIsSimulation = true;
                     window.tutorialBPMState = 12;
                     startGIFInterval(true, true);
                     overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.35)';
@@ -465,10 +499,11 @@
                     } else {
                         buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     }
-                    buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                    buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)" disabled>Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'});
                     break;
                 case 5:
+                    window.tutorialIsSimulation = false;
                     clearGIFInterval();
                     pauseAnimation();
                     clearCueText();
@@ -488,6 +523,7 @@
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
                 case 6:
+                    window.tutorialIsSimulation = false;
                     clearGIFInterval();
                     pauseAnimation();
                     clearCueText();
@@ -500,13 +536,14 @@
                     rightKey.style.display = 'none';
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
-                    metronomeWrapper.style.display = 'flex';
+                    metronomeWrapper.style.display = 'none';
                     metronomeWrapper.style.margin = 'auto';
-                    text.innerHTML = '<h3>How To Set Rate</h3>A metronome helps operators keep pace.  Select desired breath delivery rate below.  12 breaths per minute (BPM) is our default rate, but please check with the clinician at your site prior to your shift.';
+                    text.innerHTML = '<h3>About Metronomes</h3>You just kept pace by following along with a video. In real life, a metronome app helps operators keep pace. Select desired breath delivery rate below.  12 breaths per minute (BPM) is our default rate, but please check with the clinician at your site prior to your shift.';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
                 case 7:
+                    window.tutorialIsSimulation = false;
                     clearGIFInterval();
                     pauseAnimation();
                     clearCueText();
@@ -525,6 +562,9 @@
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'});
                     break;
                 case 8:
+                    window.tutorialCurrentScore = 0;
+                    window.tutorialTotalReps = 20;
+                    window.tutorialIsSimulation = true;
                     clearCueText();
                     overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.35)';
                     leftKey.style.visibility = 'visible';
@@ -561,6 +601,28 @@
         }
         window.setPresentationState = setPresentationState;
 
+        function howManyMore() {
+            return Math.max(0, window.tutorialTotalReps - window.tutorialCurrentScore)
+        }
+
+        function tallyScore() {
+            if (!window.tutorialIsSimulation) {
+                return;
+            }
+            if (window.tutorialGotScorePush && window.tutorialGotScoreLetGo) {
+                window.tutorialCurrentScore++;
+                text.innerHTML = '<p class="success" style="font-size: 2.5em; margin-bottom: 0">Good! ' + howManyMore() + ' More</p>';
+            } else {
+                text.innerHTML = '<p class="error" style="font-size: 2.5em; margin-bottom: 0">Missed. ' + howManyMore() + ' More</p>';
+            }
+            if (howManyMore() == 0) {
+                window.setPresentationState(++tutorialPresentationState);
+            }
+            window.setTimeout(clearOverlayText, 1000);
+            window.tutorialGotScorePush = false;
+            window.tutorialGotScoreLetGo = false;
+        }
+
         function GIFIntervalHandler(shouldUpdateText) {
             window.tutorialShouldBePushedState = true;
             if (shouldUpdateText) {
@@ -573,6 +635,7 @@
                 window.tutorialShouldBePushedState = false;
                 if (shouldUpdateText) {
                     updateText();
+                    window.setTimeout(tallyScore, GIFAnimationDuration / 2);
                 }
             }, GIFAnimationDuration / 2);
         }
@@ -606,14 +669,17 @@
             displayCountdownNumber(window.tutorialCountdownNumber);
             if (window.tutorialCountdownNumber == 0) {
                 clearCountdownInterval();
-                hideCountdownNumber();
+                clearOverlayText();
             }
         }
 
         function displayCountdownNumber() {
             text.innerHTML = '<p style="font-size: 3.5em; margin-bottom: 0">' + window.tutorialCountdownNumber + '</p>';
         }
-        function hideCountdownNumber() {
+        function clearOverlayText() {
+            if (!window.tutorialIsSimulation) {
+                return;
+            }
             text.innerHTML = '';
         }
 
@@ -640,15 +706,31 @@
             rightText.innerHTML = 'READY?';
         }
 
+        function countScore() {
+            if (window.tutorialShouldBePushedState) {
+                if (leftKey.tutorialIsPushed && rightKey.tutorialIsPushed) {
+                    window.tutorialGotScorePush = true;
+                } else {
+                    window.tutorialGotScorePush = false;
+                }
+            } else {
+                if (!leftKey.tutorialIsPushed && !rightKey.tutorialIsPushed) {
+                    window.tutorialGotScoreLetGo = true;
+                } else {
+                    window.tutorialGotScoreLetGo = false;
+                }
+            }
+        }
+
         function updateText() {
             if (window.tutorialShouldBePushedState) {
                 if (leftKey.tutorialIsPushed) {
                     leftText.classList.remove('error');
                     leftText.classList.add('success');
                     if (window.isMobile) {
-                        leftText.innerHTML = 'HOLD!';
+                        leftText.innerHTML = '';
                     } else {
-                        leftText.innerHTML = 'HOLD!';
+                        leftText.innerHTML = '';
                     }
                 } else {
                     leftText.classList.remove('success');
@@ -659,9 +741,9 @@
                     rightText.classList.remove('error');
                     rightText.classList.add('success');
                     if (window.isMobile) {
-                        rightText.innerHTML = 'HOLD!';
+                        rightText.innerHTML = '';
                     } else {
-                        rightText.innerHTML = 'HOLD!';
+                        rightText.innerHTML = '';
                     }
                 } else {
                     rightText.classList.remove('success');
@@ -677,9 +759,9 @@
                     leftText.classList.remove('error');
                     leftText.classList.add('success');
                     if (window.isMobile) {
-                        leftText.innerHTML = 'STAY!';
+                        leftText.innerHTML = '';
                     } else {
-                        leftText.innerHTML = 'STAY!';
+                        leftText.innerHTML = '';
                     }
                 }
                 if (rightKey.tutorialIsPushed) {
@@ -690,9 +772,9 @@
                     rightText.classList.remove('error');
                     rightText.classList.add('success');
                     if (window.isMobile) {
-                        rightText.innerHTML = 'STAY!';
+                        rightText.innerHTML = '';
                     } else {
-                        rightText.innerHTML = 'STAY!';
+                        rightText.innerHTML = '';
                     }
                 }
             }
@@ -714,3 +796,23 @@
 </script>
 </body>
 </html>
+
+<!--
+
+    so we need to make the metronome simulation part more real with a noise / visual click so they aren't relying on
+    the video. That is, the second level will be harder.
+
+    Criteria for passing, they're saying two minutes without a fuck up. That might not even be that tricky to implement,
+    but it's kind of torture for the person. Either way, I'll just implement it based on a number of seconds they provide
+    and separate the logic for reseting out so we can do what they ask now but easily change it. that's a winning approach
+
+    PICKING UP
+
+    Step 6. Saying hey, you followed along, but really you'll use a metronome on your smart phone.
+
+    Here's one. Pretend it's your smart phone. The first step is to select the breath per minute rate. Check with clinician, etc.
+
+    Now, that you've selected your rate, pump along again 20 times following the metronome / visual cue alone.
+
+    (Probably easiest to set this up with a different interval or something)
+-->
