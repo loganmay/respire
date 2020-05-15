@@ -158,6 +158,19 @@
         .error {
             color: #a94442;
         }
+        .for-tutorial {
+            display:flex;
+            position:absolute;
+            left:50%;
+            transform:translateX(-50%);
+        }
+        #sound-on {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 23px;
+            font-size: 1.5em;
+        }
         @media only screen and (max-width: 786px) {
             #presentation {
                 height: 450px;
@@ -175,12 +188,22 @@
             }
             .left-text, .right-text {
                 text-align: center;
+                min-width: auto;
             }
             .metronome-wrapper {
+                position: relative;
+                bottom: 15px;
+            }
+            .bottom-buttons-wrapper {
+                margin-top: 10px;
+                position: relative;
+            }
+            .for-tutorial {
+                display: flex;
                 position: absolute;
                 left: 50%;
                 transform: translateX(-50%);
-                bottom: 15px;
+                bottom: 45px;
             }
         }
     </style>
@@ -197,6 +220,7 @@
                 <div class="metronome-wrapper">
                     <img class="floating-phone" style="height: 145px;" src="./assets/phone_blue_screen.png">
                     <div class="metronome-speed">
+                        <div id="sound-on" style="display:none;"><i class="fa fa-volume-up" aria-hidden="true"></i></div>
                         <div id="speed-up"><i class="fa fa-chevron-up" style="position: relative;bottom: 3px;"></i></div>
                         <div id="bpm-state">
                             <div id="bpm-state-text">12</div>
@@ -241,6 +265,7 @@
         var bpmState = metronomeWrapper.querySelector('#bpm-state');
         var bpmStateText = bpmState.querySelector('#bpm-state-text');
         var speedDown = metronomeWrapper.querySelector('#speed-down');
+        var soundOn = metronomeWrapper.querySelector('#sound-on');
 
         var pushSpan = '<span class="error">PUSH!</span>'; 
         var releaseSpan = '<span class="error">RELEASE!</span>'; 
@@ -251,6 +276,14 @@
         var GIFAnimationSteps = (37600 / presentation.offsetWidth).toFixed(0);
 
         var sound = new Audio('./assets/tamborine.mp3');
+
+        // sound.addEventListener('play', function() {
+        //     soundOn.style.display = 'block';
+        // });
+
+        // sound.addEventListener('ended', function() {
+        //     soundOn.style.display = 'none';
+        // });
 
         speedUp.addEventListener('click', function(e) { 
             window.tutorialBPMState = Math.min(window.tutorialBPMState + 1, 30);
@@ -441,7 +474,7 @@
                     rightText.style.display = 'none';
                     metronomeWrapper.style.display = 'none';
                     if (window.isMobile) {
-                        text.innerHTML = '<h3>How It Works</h3>Use your left thumb to push the <strong>L</strong> button and your right thumb to push the <strong>R</strong> button as soon as you see <strong class="error" style="font-size:1.5rem">PUSH!</strong> Keep pace with the video! Once you have the hang, get more practice on the next slide.';
+                        text.innerHTML = '<h3>How It Works</h3>On the next slide, the simulation will begin. Use your left thumb to push the <strong>L</strong> button and your right thumb to push the <strong>R</strong> button. Your goal is push and let go in sync with the video <strong>for 1 minute</strong>. The cues <strong class="error" style="font-size:2rem">PUSH!</strong> and <strong class="error" style="font-size:2rem">LET GO!</strong> will help you along.';
                         buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     } else {
                         text.innerHTML = '<h3>How It Works</h3>On the next slide, the simulation will begin. Use your left thumb to push the <strong>Q</strong> key and your right thumb to push the <strong>P</strong> key. Your goal is push and let go in sync with the video <strong>for 1 minute</strong>. The cues <strong class="error" style="font-size:2rem">PUSH!</strong> and <strong class="error" style="font-size:2rem">LET GO!</strong> will help you along.';
@@ -543,10 +576,7 @@
                     rightKey.style.display = 'block';
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
-                    metronomeWrapper.style.display = 'flex';
-                    metronomeWrapper.style.position = '';
-                    metronomeWrapper.style.left = '';
-                    metronomeWrapper.style.transform = '';
+                    metronomeWrapper.classList.remove('for-tutorial');
                     speedUp.style.display = 'none';
                     speedDown.style.display = 'none';
                     text.innerHTML = '<h3>Trying Different BPMs</h3>On the next slide, the simulation will start. Push and let go <strong>for 1 minute</strong>, this time in sync with the metronome. <strong>You will need sound on <i class="fa fa-volume-up" aria-hidden="true"></i>.</strong>';
@@ -567,9 +597,7 @@
                     leftText.style.display = 'block';
                     rightText.style.display = 'block';
                     metronomeWrapper.style.display = 'flex';
-                    metronomeWrapper.style.position = 'absolute';
-                    metronomeWrapper.style.left = '50%';
-                    metronomeWrapper.style.transform = 'translateX(-50%)';
+                    metronomeWrapper.classList.add('for-tutorial')
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)" disabled>Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
@@ -643,8 +671,7 @@
                 updateText();
             }
             sound.play();
-            // TODO: show sound wave things
-            // TODO: set time out to stop sound wave things
+            // TODO: find a sound that plays immediately, or a way to speed up the sound
 
             // switch the text back when the GIF stops
             window.setTimeout(function() {
