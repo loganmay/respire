@@ -108,6 +108,8 @@
             font-size: 2em;
             padding: .5em;
             font-weight: bold;
+            min-width: 130px;
+            text-align: center;
         }
         .left-key:hover, .right-key:hover {
             cursor: pointer;
@@ -117,34 +119,37 @@
             color: #333;
         }
         .metronome-wrapper {
-            margin:auto;
+            margin: 15px auto 0px;
             display: flex;
             flex-direction: column;
             text-align: center;
+            position: relative;
         }
-        .metronome-title {
-            font-size: 1.2em;
-            margin-bottom: 5px;
-            margin-top:15px;
-            font-weight: bold;
-        }
-        ul.metronome {
-            display: flex;
-            padding: 0;
-            margin: 0;
-        }
-        ul.metronome li {
-            list-style-type: none;
-            font-size: 1.2em;
-            padding: .75em;
-            margin: 0 .25em 0;
-            border-radius: 100px;
-            border: 2px solid #333;
-            border-color: rgb(159, 40, 40);
-            background-color: rgb(159, 40, 40);
+        .metronome-speed {
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            top: 50%;
+            display:flex;
+            flex-direction: column;
+            font-size: 1.5em;
             color: white;
         }
-        ul.metronome li:hover {
+        #bpm-state {
+            display: flex;
+            align-items: center;
+        }
+        #bpm-state-units {
+            font-size: .5em;
+            margin-left: 2px;
+        }
+        .metronome-speed #speed-up, .metronome-speed #speed-down {
+            background: #174f62;
+            border-radius: 100px;
+            margin: 2px auto 4px;
+            width: 40px;
+        }
+        .metronome-speed #speed-up:hover, .metronome-speed #speed-down:hover {
             cursor:pointer;
         }
         .success {
@@ -190,21 +195,15 @@
                 <div class="left-key" style="display:none;"></div>
                 <div class="left-text" style="display:none;"></div>
                 <div class="metronome-wrapper">
-                    <div class="metronome-wrapper" style="margin: 0px; display: flex;position: relative;">
-                        <img class="floating-phone" style="height: 145px;" src="./assets/phone_blue_screen.png">
-                        <div class="metronome-speed" style="position: absolute;left: 50%;transform: translate(-50%, -50%);top: 50%;display:flex;flex-direction: column;font-size: 1.5em;color: white;">
-                            <div style="background: lightblue;border-radius: 100px;padding: .em;"><i class="fa fa-chevron-up" style="position: relative;bottom: 3px;"></i></div>
-                            <div>12</div>
-                            <div style="background: lightblue;border-radius: 100px;"><i class="fa fa-chevron-down"></i></div>
-                        </div>               
-                    </div>
-                    <!-- 
-                    <div class="metronome-title">Select BPM</div>
-                    <ul class="metronome">
-                        <li>12</li>
-                        <li style="background-color:rgb(186, 32, 32);border-color:rgb(186, 32, 32)">18</li>
-                        <li style="background-color:rgb(227, 18, 18);border-color:rgb(227, 18, 18)">24</li>
-                    </ul> -->
+                    <img class="floating-phone" style="height: 145px;" src="./assets/phone_blue_screen.png">
+                    <div class="metronome-speed">
+                        <div id="speed-up"><i class="fa fa-chevron-up" style="position: relative;bottom: 3px;"></i></div>
+                        <div id="bpm-state">
+                            <div id="bpm-state-text">12</div>
+                            <div id="bpm-state-units">bpm</div>
+                        </div>
+                        <div id="speed-down"><i class="fa fa-chevron-down"></i></div>
+                    </div>               
                 </div>
                 <div class="right-text" style="display:none;"></div>
                 <div class="right-key" style="display:none;"></div>
@@ -215,13 +214,17 @@
   <script>
     (function(window) {
 
+        var simulation1Seconds = 10;
+        var simulation2Seconds = 60;
+
         window.tutorialPresentationState = 0;
-        window.tutorialBPMState = 18;
+        window.tutorialBPMState = 12;
         window.tutorialShouldBePushedState = false;
         window.GIFIntervalID = null;
         window.tutorialCurrentScore = 0;
         window.tutorialTotalReps = 1;
         window.tutorialIsSimulation = false;
+        window.metronomeIntervalID = null;
 
         var presentation = document.querySelector('#presentation');
         var overlay = document.querySelector('.squeeze-overlay');
@@ -231,11 +234,13 @@
         var rightKey = document.querySelector('.right-key');
         leftKey.tutorialIsPushed = false;
         rightKey.tutorialIsPushed = false;
-        // var metronome = document.querySelector('.metronome');
-        // var metronomeButtons = metronome.querySelectorAll('li');
         var leftText = document.querySelector('.left-text');
         var rightText = document.querySelector('.right-text');
         var metronomeWrapper = document.querySelector('.metronome-wrapper');
+        var speedUp = metronomeWrapper.querySelector('#speed-up');
+        var bpmState = metronomeWrapper.querySelector('#bpm-state');
+        var bpmStateText = bpmState.querySelector('#bpm-state-text');
+        var speedDown = metronomeWrapper.querySelector('#speed-down');
 
         var pushSpan = '<span class="error">PUSH!</span>'; 
         var releaseSpan = '<span class="error">RELEASE!</span>'; 
@@ -244,6 +249,17 @@
         var GIFAnimationDuration = 2000; // milliseconds
         var GIFAnimationSeconds = GIFAnimationDuration / 1000;
         var GIFAnimationSteps = (37600 / presentation.offsetWidth).toFixed(0);
+
+        var sound = new Audio('./assets/tamborine.mp3');
+
+        speedUp.addEventListener('click', function(e) { 
+            window.tutorialBPMState = Math.min(window.tutorialBPMState + 1, 30);
+            bpmStateText.innerHTML = window.tutorialBPMState;
+        });
+        speedDown.addEventListener('click', function(e) { 
+            window.tutorialBPMState = Math.max(window.tutorialBPMState - 1, 1);
+            bpmStateText.innerHTML = window.tutorialBPMState;
+        });
 
         function playAnimation(isInfinite) {
             GIFAnimationSteps = (37600 / presentation.offsetWidth).toFixed(0);
@@ -282,7 +298,7 @@
             leftKey.addEventListener('touchstart', function(e) {
                 e.preventDefault();
                 leftKey.classList.add('pushed-key');
-                if (window.GIFIntervalID) {
+                if (window.tutorialIsSimulation) {
                     leftKey.tutorialIsPushed = true;
                     updateText();
                     countScore();
@@ -291,7 +307,7 @@
             rightKey.addEventListener('touchstart', function(e) {
                 e.preventDefault();
                 rightKey.classList.add('pushed-key');
-                if (window.GIFIntervalID) {
+                if (window.tutorialIsSimulation) {
                     rightKey.tutorialIsPushed = true;
                     updateText();
                     countScore();
@@ -300,7 +316,7 @@
             leftKey.addEventListener('touchend', function(e) {
                 e.preventDefault();
                 leftKey.classList.remove('pushed-key');
-                if (window.GIFIntervalID) {
+                if (window.tutorialIsSimulation) {
                     leftKey.tutorialIsPushed = false;
                     updateText();
                     countScore();
@@ -309,7 +325,7 @@
             rightKey.addEventListener('touchend', function(e) {
                 e.preventDefault();
                 rightKey.classList.remove('pushed-key');
-                if (window.GIFIntervalID) {
+                if (window.tutorialIsSimulation) {
                     rightKey.tutorialIsPushed = false;
                     updateText();
                     countScore();
@@ -322,7 +338,7 @@
                 switch (e.code) {
                     case "KeyQ":
                         leftKey.classList.add('pushed-key');
-                        if (window.GIFIntervalID) {
+                        if (window.tutorialIsSimulation) {
                             leftKey.tutorialIsPushed = true;
                             updateText();
                             countScore();
@@ -330,7 +346,7 @@
                         break;
                     case "KeyP":
                         rightKey.classList.add('pushed-key');
-                        if (window.GIFIntervalID) {
+                        if (window.tutorialIsSimulation) {
                             rightKey.tutorialIsPushed = true;
                             updateText();
                             countScore();
@@ -342,7 +358,7 @@
                     switch (e.code) {
                         case "KeyQ":
                             leftKey.classList.remove('pushed-key');
-                            if (window.GIFIntervalID) {
+                            if (window.tutorialIsSimulation) {
                                 leftKey.tutorialIsPushed = false;
                                 updateText();
                                 countScore();
@@ -350,7 +366,7 @@
                             break;
                         case "KeyP":
                             rightKey.classList.remove('pushed-key');
-                            if (window.GIFIntervalID) {
+                            if (window.tutorialIsSimulation) {
                                 rightKey.tutorialIsPushed = false;
                                 updateText();
                                 countScore();
@@ -358,48 +374,6 @@
                             break;
                     }
                 });
-        }
-
-        // metronomeButtons.forEach(function(b) {
-        //     b.addEventListener('click', function(e) {
-        //         e.preventDefault();
-        //         if (e.target == metronomeButtons[0]) {
-        //             window.tutorialBPMState = 12;
-        //             metronomeButtons[0].style.backgroundColor = 'white';
-        //             metronomeButtons[0].style.color = 'rgb(159, 40, 40)';
-        //             metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
-        //             metronomeButtons[1].style.color = 'white';
-        //             metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
-        //             metronomeButtons[2].style.color = 'white';
-        //         } else if (e.target == metronomeButtons[1]) {
-        //             window.tutorialBPMState = 18;
-        //             metronomeButtons[0].style.color = 'white';
-        //             metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
-        //             metronomeButtons[1].style.color = 'rgb(186, 32, 32)';
-        //             metronomeButtons[1].style.backgroundColor = 'white';
-        //             metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
-        //             metronomeButtons[2].style.color = 'white';
-        //         } else if (e.target == metronomeButtons[2]) {
-        //             window.tutorialBPMState = 24;
-        //             metronomeButtons[0].style.color = 'white';
-        //             metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
-        //             metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
-        //             metronomeButtons[1].style.color = 'white';
-        //             metronomeButtons[2].style.color = 'rgb(227, 18, 18)';
-        //             metronomeButtons[2].style.backgroundColor = 'white';
-        //         }
-        //         startGIFInterval(false, window.tutorialPresentationState == 6 || window.tutorialPresentationState == 7 || window.tutorialPresentationState == 8);
-        //     });
-        // });
-
-        function clearMetronomeSelection() {
-            window.tutorialBPMState = 12;
-            // metronomeButtons[0].style.backgroundColor = 'rgb(159, 40, 40)';
-            // metronomeButtons[0].style.color = 'white';
-            // metronomeButtons[1].style.backgroundColor = 'rgb(186, 32, 32)';
-            // metronomeButtons[1].style.color = 'white';
-            // metronomeButtons[2].style.backgroundColor = 'rgb(227, 18, 18)';
-            // metronomeButtons[2].style.color = 'white';
         }
 
         function setPresentationState(stateIndex) {
@@ -416,7 +390,6 @@
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
                     metronomeWrapper.style.display = 'none';
-                    metronomeWrapper.style.margin = 'auto';
                     text.innerHTML = '<h3>Interactive Tutorial</h3>Squeezing the Self-Inflating Bag at a Steady Rate';
                     buttons.innerHTML = '<button onClick="setPresentationState(++tutorialPresentationState)">Click To Get Started</button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '100%'})
@@ -432,7 +405,6 @@
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
                     metronomeWrapper.style.display = 'none';
-                    metronomeWrapper.style.margin = 'auto';
                     text.innerHTML = '<h3>Select Your Device</h3><i class="fa fa-long-arrow-down"></i>';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="tutorialSelectDevice(\'KEYBOARD\')"><i class="fa fa fa-laptop" style="margin-right: 1em;"></i>PC or Laptop</button><button onClick="tutorialSelectDevice(\'TOUCH\')"><i class="fa fa-mobile" style="margin-right: 1em;"></i>Tablet or Phone</button>';
                     buttons.querySelectorAll('button').forEach(function(button, i) { i == 0 ? button.style.width = '20%' : button.style.width = '40%'})
@@ -448,7 +420,6 @@
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
                     metronomeWrapper.style.display = 'none';
-                    metronomeWrapper.style.margin = 'auto';
                     device = window.isMobile ? 'touch screen' : 'keyboard';
                     text.innerHTML = '<h3>Overview</h3>This tutorial asks you to use your <strong>' + device + '</strong> to simulate squeezing a Self-Inflating Bag <strong>at a steady rate</strong>.';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
@@ -469,7 +440,6 @@
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
                     metronomeWrapper.style.display = 'none';
-                    metronomeWrapper.style.margin = 'auto';
                     if (window.isMobile) {
                         text.innerHTML = '<h3>How It Works</h3>Use your left thumb to push the <strong>L</strong> button and your right thumb to push the <strong>R</strong> button as soon as you see <strong class="error" style="font-size:1.5rem">PUSH!</strong> Keep pace with the video! Once you have the hang, get more practice on the next slide.';
                         buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
@@ -483,6 +453,7 @@
                 case 4:
                     window.tutorialIsSimulation = true;
                     window.tutorialBPMState = 12;
+                    window.tutorialTotalReps = Math.round((window.tutorialBPMState / 60) * simulation1Seconds);
                     startGIFInterval(true, true);
                     overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.35)';
                     overlay.style.justifyContent = 'space-between';
@@ -493,7 +464,6 @@
                     leftText.style.display = 'block';
                     rightText.style.display = 'block';
                     metronomeWrapper.style.display = 'none';
-                    metronomeWrapper.style.margin = 'auto';
                     if (window.isMobile) {
                         buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     } else {
@@ -517,8 +487,7 @@
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
                     metronomeWrapper.style.display = 'none';
-                    metronomeWrapper.style.margin = 'auto';
-                    text.innerHTML = '<h3>Good Job! 😃</h3>We\'ll next look at adjusting the rate to different <strong>breaths per minute (bpm)</strong>.';
+                    text.innerHTML = '<h3>Good Job! 😃</h3>We\'ll next look at using a <strong>metronome app</strong> for keeping pace according to different rates, measured in <strong>breaths per minute (bpm)</strong>.';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
@@ -527,7 +496,6 @@
                     clearGIFInterval();
                     pauseAnimation();
                     clearCueText();
-                    clearMetronomeSelection();
                     overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.75)';
                     overlay.style.justifyContent = 'space-between';
                     leftKey.style.visibility = 'visible';
@@ -536,9 +504,8 @@
                     rightKey.style.display = 'none';
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
-                    metronomeWrapper.style.display = 'none';
-                    metronomeWrapper.style.margin = 'auto';
-                    text.innerHTML = '<h3>About Metronomes</h3>You just kept pace by following along with a video. In real life, a metronome app helps operators keep pace. Select desired breath delivery rate below.  12 breaths per minute (BPM) is our default rate, but please check with the clinician at your site prior to your shift.';
+                    metronomeWrapper.style.display = 'flex';
+                    text.innerHTML = '<h3>Metronome Apps</h3>In real life, a metronome phone app helps operators keep pace at the desired breaths per minute (bpm) rate.';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
@@ -547,7 +514,28 @@
                     clearGIFInterval();
                     pauseAnimation();
                     clearCueText();
-                    clearMetronomeSelection();
+                    overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.75)';
+                    overlay.style.justifyContent = 'space-between';
+                    leftKey.style.visibility = 'visible';
+                    rightKey.style.visibility = 'visible';
+                    leftKey.style.display = 'none';
+                    rightKey.style.display = 'none';
+                    leftText.style.display = 'none';
+                    rightText.style.display = 'none';
+                    metronomeWrapper.style.display = 'flex';
+                    speedUp.style.display = 'block';
+                    speedDown.style.display = 'block';
+                    text.innerHTML = '<h3>Using Our Metronome \'App\'</h3><strong>Use the arrow buttons on the \'app\' below to adjust the rate</strong>.  12 breaths per minute (BPM) is our default rate, but please check with the clinician at your site prior to your shift.';
+                    buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                    buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
+                    break;
+                case 8:
+                    window.tutorialIsSimulation = false;
+                    clearGIFInterval();
+                    clearMetronomeInterval();
+                    clearCountdownInterval();
+                    pauseAnimation();
+                    clearCueText();
                     overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.75)';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
@@ -556,16 +544,21 @@
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
                     metronomeWrapper.style.display = 'flex';
-                    metronomeWrapper.style.margin = '0';
-                    text.innerHTML = '<h3>Trying Different BPMs</h3>On the next slide, the simulation will begin again. This time, it will use the rate you select. Try keeping pace with the different rates.';
+                    metronomeWrapper.style.position = '';
+                    metronomeWrapper.style.left = '';
+                    metronomeWrapper.style.transform = '';
+                    speedUp.style.display = 'none';
+                    speedDown.style.display = 'none';
+                    text.innerHTML = '<h3>Trying Different BPMs</h3>On the next slide, the simulation will start. Push and let go <strong>for 1 minute</strong>, this time in sync with the metronome. <strong>You will need sound on <i class="fa fa-volume-up" aria-hidden="true"></i>.</strong>';
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'});
                     break;
-                case 8:
-                    window.tutorialCurrentScore = 0;
-                    window.tutorialTotalReps = 20;
+                case 9:
                     window.tutorialIsSimulation = true;
+                    window.tutorialCurrentScore = 0;
+                    window.tutorialTotalReps = Math.round((window.tutorialBPMState / 60) * (1 / simulation2Seconds));
                     clearCueText();
+                    startMetronomeInterval(true, true);
                     overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.35)';
                     leftKey.style.visibility = 'visible';
                     rightKey.style.visibility = 'visible';
@@ -574,13 +567,18 @@
                     leftText.style.display = 'block';
                     rightText.style.display = 'block';
                     metronomeWrapper.style.display = 'flex';
-                    metronomeWrapper.style.margin = '0';
-                    text.innerHTML = '';
-                    buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)">Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
+                    metronomeWrapper.style.position = 'absolute';
+                    metronomeWrapper.style.left = '50%';
+                    metronomeWrapper.style.transform = 'translateX(-50%)';
+                    buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button><button onClick="setPresentationState(++tutorialPresentationState)" disabled>Next<i class="fa fa-chevron-right" style="margin-left: 1em;"></i></button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '50%'})
                     break;
-                case 9:
+                case 10:
+                    window.tutorialIsSimulation = false;
                     clearCueText();
+                    clearCountdownInterval();
+                    clearMetronomeInterval();
+                    // playAnimation();
                     leftKey.style.visibility = 'hidden';
                     rightKey.style.visibility = 'hidden';
                     overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.75)';
@@ -589,8 +587,7 @@
                     leftText.style.display = 'none';
                     rightText.style.display = 'none';
                     metronomeWrapper.style.display = 'none';
-                    metronomeWrapper.style.margin = 'auto';
-                    text.innerHTML = '<h3>Thanks For Learning With Us!</h3>That\'s all we\'ve got! We hope this simulation helped. Before you go, remember you will need a metronome app on your smartphone to set the rate in person. <a href="https://apps.apple.com/us/app/pro-metronome-tempo-beat-subdivision-polyrhythm/id477960671" target="_blank">Click here to view a recommended metronome app</a>.' ;
+                    text.innerHTML = '<h3>Thanks For Learning With Us! 🏆</h3>We hope this simulation helped. Before you go, remember you will need a metronome app on your smartphone to set the rate in person. <a href="https://apps.apple.com/us/app/pro-metronome-tempo-beat-subdivision-polyrhythm/id477960671" target="_blank">Click here to view a recommended metronome app</a>.' ;
                     buttons.innerHTML = '<button onClick="setPresentationState(--tutorialPresentationState)"><i class="fa fa-chevron-left" style="margin-right: 1em;"></i>Back</button>';
                     buttons.querySelectorAll('button').forEach(function(button) {button.style.width = '100%'})
                     startIntervalTutorial();
@@ -618,7 +615,7 @@
             if (howManyMore() == 0) {
                 window.setPresentationState(++tutorialPresentationState);
             }
-            window.setTimeout(clearOverlayText, 1000);
+            window.setTimeout(clearOverlayText, BPMToInterval(window.tutorialBPMState) / 4);
             window.tutorialGotScorePush = false;
             window.tutorialGotScoreLetGo = false;
         }
@@ -638,6 +635,38 @@
                     window.setTimeout(tallyScore, GIFAnimationDuration / 2);
                 }
             }, GIFAnimationDuration / 2);
+        }
+
+        function metronomeIntervalHandler(shouldUpdateText) {
+            window.tutorialShouldBePushedState = true;
+            if (shouldUpdateText) {
+                updateText();
+            }
+            sound.play();
+            // TODO: show sound wave things
+            // TODO: set time out to stop sound wave things
+
+            // switch the text back when the GIF stops
+            window.setTimeout(function() {
+                window.tutorialShouldBePushedState = false;
+                if (shouldUpdateText) {
+                    updateText();
+                    window.setTimeout(tallyScore, BPMToInterval(window.tutorialBPMState) / 4);
+                }
+            }, BPMToInterval(window.tutorialBPMState) / 4);
+        }
+
+        function startMetronomeInterval(includeDelay, shouldUpdateText) {
+            clearMetronomeInterval();
+            startCountdownTimer(3);
+            window.metronomeIntervalID = window.setInterval(metronomeIntervalHandler, BPMToInterval(window.tutorialBPMState), true);
+        }
+
+        function clearMetronomeInterval() {
+            if (window.metronomeIntervalID) {
+                window.clearInterval(window.metronomeIntervalID);
+            }
+            window.metronomeIntervalID = null;
         }
 
         function startGIFInterval(includeDelay, shouldUpdateText) {
@@ -666,7 +695,7 @@
 
         function decreaseCountdownNumber() {
             window.tutorialCountdownNumber--;
-            displayCountdownNumber(window.tutorialCountdownNumber);
+            displayCountdownNumber();
             if (window.tutorialCountdownNumber == 0) {
                 clearCountdownInterval();
                 clearOverlayText();
@@ -674,7 +703,8 @@
         }
 
         function displayCountdownNumber() {
-            text.innerHTML = '<p style="font-size: 3.5em; margin-bottom: 0">' + window.tutorialCountdownNumber + '</p>';
+            var fontsize = window.tutorialPresentationState == 9 ? '3' : '3.5';
+            text.innerHTML = '<p style="font-size: ' + fontsize + 'em; margin-bottom: 0">' + window.tutorialCountdownNumber + '</p>';
         }
         function clearOverlayText() {
             if (!window.tutorialIsSimulation) {
