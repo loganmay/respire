@@ -171,6 +171,10 @@
             bottom: 23px;
             font-size: 1.5em;
         }
+        .score-message {
+            font-size: 2.5em; 
+            margin-bottom: 0
+        }
         @media only screen and (max-width: 786px) {
             #presentation {
                 height: 450px;
@@ -204,6 +208,9 @@
                 left: 50%;
                 transform: translateX(-50%);
                 bottom: 45px;
+            }
+            .score-message {
+                font-size: 1.5em; 
             }
         }
     </style>
@@ -276,6 +283,7 @@
         var GIFAnimationSteps = (37600 / presentation.offsetWidth).toFixed(0);
 
         var sound = new Audio('./assets/tamborine.mp3');
+        // sound.playbackRate = 2;
 
         // sound.addEventListener('play', function() {
         //     soundOn.style.display = 'block';
@@ -586,7 +594,7 @@
                 case 9:
                     window.tutorialIsSimulation = true;
                     window.tutorialCurrentScore = 0;
-                    window.tutorialTotalReps = Math.round((window.tutorialBPMState / 60) * (1 / simulation2Seconds));
+                    window.tutorialTotalReps = Math.round((window.tutorialBPMState / 60) * simulation2Seconds);
                     clearCueText();
                     startMetronomeInterval(true, true);
                     overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.35)';
@@ -636,9 +644,9 @@
             }
             if (window.tutorialGotScorePush && window.tutorialGotScoreLetGo) {
                 window.tutorialCurrentScore++;
-                text.innerHTML = '<p class="success" style="font-size: 2.5em; margin-bottom: 0">Good! ' + howManyMore() + ' More</p>';
+                text.innerHTML = '<p class="success score-message">Good! ' + howManyMore() + ' More</p>';
             } else {
-                text.innerHTML = '<p class="error" style="font-size: 2.5em; margin-bottom: 0">Missed. ' + howManyMore() + ' More</p>';
+                text.innerHTML = '<p class="error score-message">Missed. ' + howManyMore() + ' More</p>';
             }
             if (howManyMore() == 0) {
                 window.setPresentationState(++tutorialPresentationState);
@@ -666,11 +674,11 @@
         }
 
         function metronomeIntervalHandler(shouldUpdateText) {
+            sound.play();
             window.tutorialShouldBePushedState = true;
             if (shouldUpdateText) {
                 updateText();
             }
-            sound.play();
             // TODO: find a sound that plays immediately, or a way to speed up the sound
 
             // switch the text back when the GIF stops
